@@ -1,0 +1,2258 @@
+<style>
+
+@import url('https://fonts.googleapis.com/css?family=Lato:300,400,900');
+
+*{ -webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box}
+html {font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100% }
+body { background: rgba(8,3,37,0.9); color:white; font-family: 'Lato', sans-serif; font-size:100%;line-height:1.5;-webkit-font-smoothing:antialiased;margin:0; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;}
+body.noscroll { overflow:hidden; }
+a { background:transparent;text-decoration: none; transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out; color:#59ABE3 }
+.transition { transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out }
+b,strong,.strong{font-weight:700}
+dfn,em,.em{font-style:italic}
+hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+p {-epub-hyphens:auto;-ms-word-break:break-word; -ms-word-wrap:break-word; word-break:break-word; -webkit-hyphens:none; -moz-hyphens:none; hyphens:none; -webkit-hyphenate-before:2;-webkit-hyphenate-after:3;hyphenate-lines:3;-webkit-font-feature-settings:liga, dlig;-moz-font-feature-settings:"liga=1, dlig=1";-ms-font-feature-settings:liga, dlig;-o-font-feature-settings:liga, dlig;font-feature-settings:liga, dlig}
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary { display:block}
+audio,canvas,video{display:inline-block}
+audio:not([controls]){display:none;height:0}[hidden],template{display:none}
+pre {white-space:pre-wrap;margin:0}
+code,kbd,pre,samp{font-family:monospace, serif;font-size:1em}
+q{quotes:\201C \201D \2018 \2019}
+q:before,q:after{content:none}
+small,.small{font-size:75%}
+nav ul,nav ol{list-style:none;list-style-image:none}
+img{border:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+dl,menu,ol,ul,dd{margin:0}
+.clearfix { clear:both }
+.noselect { -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none }
+.align-center { text-align:center }
+.align-right { text-align:right }
+.align-left { text-align: left }
+.position-relative { position:relative }
+.white { color:white }
+.fullwidth, .full-width { width:100%; max-width:100%; }
+.uppercase { text-transform: uppercase }
+.centered-vertical { top: 50%; -webkit-transform: translateY(-50%); -ms-transform: translateY(-50%); transform: translateY(-50%); position: absolute }
+.table { display:table }
+.fixed-layout { table-layout: fixed }
+.table-cell { display:table-cell }
+.table-row { display: table-row }
+.top { vertical-align: top }
+.middle { vertical-align: middle }
+
+.logged-in.admin-bar #wpadminbar {
+	position:absolute;
+	top:0;
+}
+.added-to-ticket {
+    background-color: #8e5757;
+    color: white;
+    font-size: 12px;
+    letter-spacing:0.5pt;
+    margin-left: 20px;
+    padding: 5px 15px;
+    font-weight: 400;
+    border-radius: 15px;
+    cursor: default;
+    line-height: 10px;
+    position: relative;
+    top: -4px;
+}
+
+.wrap {
+    width: 1400px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+.inner-wrap {
+	width: 1170px;
+    max-width: 100%;
+    margin: 0 auto;
+}
+.page-box .inner-wrap {
+	position:relative;
+}
+.main-wrapper {
+    position: relative;
+    float:left;
+    width:100%;
+}
+.section-grid-social {
+	color:white;
+}
+
+/* NAVIGATION */
+
+.at-custom-side-wrapper.addthis-smartlayers.addthis-smartlayers-desktop {
+    display: none;
+}
+#nsl-custom-login-form-1 {
+	display:none;
+}
+.login-box .nsl-container-buttons a {
+	margin: 0 !important;
+}
+.show #nsl-custom-login-form-1 {
+	display:block;
+}
+.site-header div.nsl-container .nsl-button-default span.nsl-button-label-container {
+    margin: 0 10px 0 0px;
+    padding: 10px 0;
+    font-size: 12px;
+    line-height: 20px;
+    letter-spacing: 0;
+}
+.site-header {
+	background-color: rgba(8,3,37,0.4);
+    height:80px;
+    position:fixed;
+    width:100%;
+    left:0;
+    top:0;
+    z-index:9;
+}
+.nav-menu-left {
+	float:left;
+}
+.nav-menu-right {
+    float: right;
+}
+.site-header.slim {
+	height:50px;
+	background-color: rgba(8,3,37,0.94);
+}
+.site-header .nav-top {
+	line-height: 0;
+	position:relative;
+	overflow: hidden;
+}
+.site-header .nav-top img {
+    height: 80px;
+    display: inline-block;
+    margin: 0;
+    padding: 5px;
+    float:left;
+    opacity:0;
+    position:relative;
+    left:-15px;
+    transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out;
+}
+.site-header .nav-top img.show {
+	opacity:1;
+	left:0;
+}
+.site-header.slim .nav-top img {
+	height:50px;
+}
+a.nav-login, a.nav-bets, a.nav-profile, a.nav-signup {
+    position: relative;
+    top: 0;
+    bottom: 0;
+    display: inline-block;
+    line-height: 80px;
+    color: white;
+    padding: 0 5px;
+    font-size: 13px;
+    font-weight: bold;
+}
+.nav-bets i, .nav-profile i, .nav-lobby i, .nav-contests i, .nav-leaderboard i, .nav-balance i, .nav-howtoplay i {
+	padding-right: 4px;
+}
+.nav-login i, .nav-signup i {
+	padding-left:4px
+}
+.nav-bets > span {
+    background-color: #61a55d;
+    padding: 12px;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.7);
+    border-radius: 3px;
+}
+.nav-login > span {
+	padding-right:5px;
+}
+.slim a.nav-login, .slim a.nav-bets, .slim a.nav-profile, .slim a.nav-signup, .slim a.nav-lobby, .slim a.nav-contests, .slim .nav-leaderboard, .slim .nav-balance, .slim .nav-howtoplay {
+	line-height:50px;
+}
+a.nav-lobby:after, a.nav-profile:after, a.nav-contests:after, a.nav-leaderboard:after, a.nav-howtoplay:after {
+    display: inline-block;
+    position: absolute;
+    bottom: 1px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: white;
+    content: ' ';
+    transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out;
+}
+.nav-balance {
+    top: 0;
+    bottom: 0;
+    display: inline-block;
+    line-height: 80px;
+    color: white;
+    padding: 0 5px;
+    font-size: 13px;
+    font-weight: bold;
+    transition: all .25s ease-in-out;
+    -moz-transition: all .25s ease-in-out;
+    -webkit-transition: all .25s ease-in-out;
+}
+.nav-balance .balance-amount {
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 1pt;
+    padding-left:3px;
+}
+.login-box {
+    position: fixed;
+    top: -260px;
+    right: 0;
+    width: 230px;
+    border-radius:3px;
+    text-align: left;
+    background-color: #221e3a;
+    padding: 0 15px;
+    opacity: 0;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.7);
+    transition: all .3s ease-in-out; -moz-transition: all .3s ease-in-out; -webkit-transition: all .3s ease-in-out; 
+}
+.login-box.show {
+	opacity:1;
+	top:95px;
+}
+.slim .login-box.show {
+	top: 60px;
+}
+.login-box:before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    color: rgb(34, 30, 58);
+    left: 0;
+    width: 100%;
+    height: 10px;
+}
+.login-box::after {
+    content: " ";
+    position: absolute;
+    bottom: 100%;
+    left: 20px;
+    width: 0;
+    height: 0;
+    margin-right: -6px;
+    pointer-events: none;
+    border: solid transparent;
+    border-width: 6px;
+    border-bottom-color: rgba(255, 255, 255, 0.8); /* rgba(34, 30, 58,0.8); */
+    right: 20px;
+    left: auto;
+    margin-right: 0;
+    margin-left: -6px;
+}
+.login-box label {
+    display: block;
+    font-size: 12px;
+}
+.login-box input#wp-submit {
+    background-color: transparent;
+    color: white;
+    padding: 8px 17px;
+    -webkit-appearance: none;
+    font-size: 11px;
+    outline:none;
+    transition: all .3s ease-in-out; -moz-transition: all .3s ease-in-out; -webkit-transition: all .3s ease-in-out;
+    font-weight: bold;
+    cursor:pointer;
+}
+input#user_login, input#user_pass {
+    -webkit-appearance: none;
+    border: none;
+    background-color: white;
+    font-size: 14px;
+    display: block;
+    margin: 4px 0;
+    padding: 5px;
+    width:100%;
+    color:#080425;
+}
+.login-box a {
+    display: inline-block;
+    color: white;
+    font-size: 12px;
+    padding: 3px 0 8px;
+    font-weight: 700;
+}
+a.logout-link {
+	color:white;
+	display:block;
+	font-weight:bold;
+}
+a.nav-lobby, a.nav-contests, a.nav-leaderboard, a.nav-howtoplay {
+    position: relative;
+    display: inline-block;
+    line-height: 80px;
+    color: white;
+    padding: 0 5px;
+    font-size: 13px;
+    font-weight: bold;
+    margin-left:5px;
+}
+a.nav-logo {
+    display: inline-block;
+    float: left;
+    margin-right: 30px;
+    outline:none;
+}
+.lobby-recent .contest-game .contest-title {
+    font-size: 14px;
+    line-height: 20px;
+}
+.lobby-recent .contest-begins, .recent-contests .contest-begins {
+    font-size: 11px;
+    padding: 5px 10px;
+    letter-spacing: .5pt;
+}
+.lobby-recent .contest-game .contest-date {
+	font-size:11px;
+}
+.user-box {
+    float: right;
+    text-align: right;
+    font-size: 13px;
+    width: auto;
+    margin: 0 0 1.5em;
+}
+.user-box {
+    width: 100%;
+    padding-bottom: 1em;
+    border-bottom: 1px solid #191833;
+    border-top: 1px solid #191833;
+    padding-top: 1em;
+}
+.user-box a {
+    display: block;
+    padding: 2px 0;
+    color:white;
+}
+.user-box a.edit-profile {
+	display:none;
+}
+.user-box a:hover {
+	text-decoration: underline;
+}
+
+/* BETTOR INTELLIGENCE */
+
+.profile-grid .bettor-intelligence-wrap {
+	width:25%;	
+	max-width:25%;
+}
+.bettor-intelligence-wrap {
+    float: left;
+    max-width: 500px;
+    background-color: #080425;
+    margin-bottom: 2em;
+}
+.bettor-intelligence {
+    width: 100%;
+        border: 1px solid #191833;
+/*     border-spacing: 2px 0px; */
+    text-align: center;
+}
+.bettor-intelligence-header {
+    font-weight: bold;
+    font-size: 28px;
+    padding: 12px 0;
+}
+.bettor-intelligence .table-cell.column-header, .leaderboard-wrap .table-cell.column-header {
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    font-size: 10px;
+    background-color: #242035;
+    padding: 5px 0;
+    margin:5px 0 0;
+}
+.bettor-intelligence .column-value {
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 24px;
+    padding: 5px 0;
+}
+.bettor-intelligence .column-value.bet-type {
+    font-weight: 700;
+}
+.bettor-intelligence .column-value.wagered {
+/*     font-weight: 100; */
+}
+.bettor-intelligence-wrap .section-header {
+/*     margin-bottom: 2px; */
+}
+.section-header-menu {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    display:none;
+    margin: auto;
+    height: 30px;
+    font-size: 20px;
+    cursor: pointer;
+    padding:0 15px 0 30px;
+}
+.section-header-submenu {
+    position: absolute;
+    right: 0;
+    width: 120px;
+    font-size: 14px;
+    text-align: right;
+    background-color: #191833;
+	height:0;
+	overflow: hidden;
+	transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out;
+}
+.section-header-submenu.show {
+	height:68px;
+	padding:5px 0;
+}
+.section-header-submenu a {
+    color: white;
+    padding: 5px 15px;
+    display: inline-block;
+    font-size: 13px;
+}
+h2.section-header.projections-header {
+	margin-left: 12px;
+    margin-top: 0;
+    font-size:20px;
+    margin-bottom: 10px;
+}
+.bettor-intelligence .column-total {
+    font-weight: bold;
+    font-size: 12px;
+    padding: 5px 0;
+    line-height: 24px;
+}
+.bettor-intelligence .table-row:nth-of-type(odd) {
+    background-color: #191833;
+}
+
+/* HOME */
+
+.home-wrapper .parallax-window {
+    min-height: 600px;
+    background-color: transparent;
+    position:relative;
+}
+.home-background-image:after {
+    content: ' ';
+    background-color: rgba(44, 33, 101, 0.8);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    border-radius: 4px;
+}
+.home-section-5 .home-background-image:after {
+   background-color: rgba(44, 33, 101, 0.8);
+}
+.home-section {
+	position:relative;
+}
+.home-section-1 h1 {
+	text-transform: uppercase;
+	margin:10px 0;
+	font-size: 44px;
+	line-height:48px;
+	font-weight:400;
+	text-shadow: 1px 1px #272727;
+	opacity:0;
+	position:relative;
+	left:-20px;
+	transition: all .5s ease-in-out; -moz-transition: all .5s ease-in-out; -webkit-transition: all .5s ease-in-out;
+}
+.home-section-1 h1.show {
+	opacity:1;
+	left:0;
+}
+.home-section-1 h2 {
+    text-transform: uppercase;
+    margin: 15px 0;
+    font-size: 18px;
+    font-weight: 400;
+    width: 100%;
+    text-shadow: 1px 1px #272727;
+    max-width: 750px;
+}
+.home-section-1 h2 strong {
+	color: #61a55d;
+    text-shadow: 1px 1px #2b332a;
+}
+.home-buttons {
+	margin: 40px 0;
+}
+a.home-btn {
+    color: white;
+    padding: 15px 30px;
+    display: inline-block;
+    margin-right:30px;
+    border-radius: 4px;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.7);
+    font-weight:700;
+}
+.profile-hero a.home-btn {
+	margin-top:15px;
+}
+.no-image a.home-btn {
+    margin-right:0;
+} 
+a.btn-signup {
+	background-color:#61a55d;
+}
+a.btn-share {
+	background-color: #61a55d;
+}
+a.btn-learn-more {
+	background-color:#d92b4c;
+}
+.home-section .section-header {
+	text-align: center;
+	font-size:28px;
+	padding:0 0 1em;
+	line-height:40px;
+	letter-spacing: 1pt;
+	text-transform: uppercase;
+}
+.home-section .section-header.no-upper {
+	text-transform: none;
+	font-size:26px;
+}
+.home-section.no-image {
+	background-color:#080425;
+	padding: 3em 1em;
+}
+.section-grid-tile {
+    padding:1em;
+	border-radius: 4px;
+	position:relative;
+}
+footer.footer {
+    background-image: url('/wp-content/uploads/2019/04/marble.jpg');
+    background-size: cover;
+    position:relative;
+}
+footer.footer:after {
+    content: ' ';
+    background-color: rgba(44, 33, 101, 0.8);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    border-radius: 4px;
+    top:0;
+    left:0;
+}
+footer.footer .copyright {
+    margin: 1em 0 0;
+}
+footer.footer .home-section-text {
+	position: relative;
+    z-index: 1;
+}
+.page-footer .section-grid-tile {
+	display:inline-block;
+}
+.page-footer .home-section-text {
+	padding:1em 1em 0 1em;
+}
+.section-image .section-grid-tile {
+	width:33%;
+}
+.home-section.no-image .section-grid-tile {
+	background-color:#221e3a;
+	position:relative;
+}
+.section-image .section-grid-tile:after {
+    content: ' ';
+    background-color: rgba(255, 255, 255, 0.15);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+.home-section .section-grid {
+    border-spacing: 15px 0;
+    margin: 0 auto;
+}
+.home-grid-icon {
+    font-size: 30px;
+}
+.home-grid-title {
+    font-size: 18px;
+    letter-spacing: 1pt;
+    margin: 0 0 10px;
+}
+.home-grid-description, .home-grid-description ul, .home-grid-description li {
+	display: block;
+    padding: 0;
+    font-size: 13px;
+    margin: 0 0 5px;
+    font-weight:400;
+    letter-spacing: 1pt;
+}
+.home-grid-count {
+    font-size: 50px;
+    margin: 0 0 20px;
+    font-weight: 100;
+}
+.home-section-text {
+	padding:0 1em;
+}
+.section-image .home-section-text.centered-vertical {
+	left:0;
+	right:0;
+	width: 1170px;
+    margin: auto;
+    max-width: 100%;
+}
+.home-disclaimer {
+    font-size: 14px;
+    width: 1000px;
+    margin: 15px auto 0;
+    max-width: 100%;
+    padding-bottom: 1em;
+}
+
+#inner-content.wrap {
+	padding:80px 1em;
+}
+
+.profile-box, .signup-page, .how-to-play-page, {
+	padding-top:100px;
+	padding-left: 1em;
+    padding-right: 1em;
+}
+
+.page-hero {
+    height: 400px;
+    position: relative;
+    background-size: cover;
+    background-position: 50%;
+    box-shadow: 0px 1px 3px rgba(0,0,0,0.7);
+}
+.league-MLB.page-hero, .league-NASCAR.page-hero {
+	background-position: 0 -108%;
+}
+.hero-logo {
+    display: block;
+    width: 65px;
+}
+.hero-logo img {
+	width:100%;
+	height:auto;
+	display:block;
+}
+.page-hero h1 {
+	margin: 0;
+    font-weight: 400;
+    font-size: 46px;
+    text-shadow: 1px 1px #272727;
+    text-transform: uppercase;
+}
+.page-hero .hero-details {
+	z-index:1;
+	padding:0 1em;
+	left: 0;
+    right: 0;
+}
+.page-hero:after {
+    content: ' ';
+    background-color: rgba(44, 33, 101, 0.8);
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    border-radius: 4px;
+}
+.page-hero h2 {
+    font-weight: 100;
+    font-size: 14px;
+    margin: 10px 0;
+    letter-spacing: 1pt;
+}
+.page-box {
+    background-color: #080425;
+    overflow: hidden;
+    padding:1em;
+}
+.hero-details.centered-vertical {
+	top: 54%;
+}
+
+/* LOBBY */
+
+.leaderboard-wrap .leaderboard-user strong {
+    float: right;
+    vertical-align: middle;
+    display: inline-block;
+    position: relative;
+    top: 5px;
+}
+span.leaderboard-count {
+    background-color: #242035;
+    padding: 5px;
+    width: 30px;
+    display: inline-block;
+    text-align: center;
+    margin: 0 10px 0 0;
+}
+a.leaderboard-btn {
+    position: relative;
+    text-transform: uppercase;
+    color: white;
+    background-color: #61a55d;
+    padding: 15px 25px;
+    font-size: 14px;
+    border-radius: 3px;
+    letter-spacing: .5pt;
+    margin: 20px 0 0;
+    clear: both;
+	display: inline-block;
+	/* 	box-shadow: 0px 1px 3px rgba(0,0,0,0.7); */
+}
+.lobby-sidebar {
+    float: left;
+    width: 300px;
+    padding:1em 0 1em 1em;
+}
+.lobby-main {
+    float: left;
+    padding:1em;
+    width: calc(100% - 300px);
+}
+.my-contests-main {
+	float:left;
+	padding:1em;
+	width:100%;
+}
+.my-contests-main .results-text {
+	display:block;
+	margin-top: 5px;
+    font-size: 11px;
+}
+.lobby-tabs, .my-contests-tabs, .how-to-play-tabs {
+	border-bottom: 1px solid #3a364e;
+}
+.lobby-tabs > ul, .my-contests-tabs > ul, .how-to-play-tabs > ul {
+	padding:0;
+}
+.lobby-tabs ul li, .my-contests-tabs ul li, .how-to-play-tabs ul li {
+	display:inline-block;
+	cursor: pointer;
+}
+.lobby-tabs ul li, .how-to-play-tabs ul li {
+    margin-right: 3px;
+    margin-top:3px;
+}
+.lobby-tabs ul li a, .my-contests-tabs ul li a, .how-to-play-tabs ul li a {
+    color: white;
+    cursor:pointer;
+    display: inline-block;
+    padding: 15px;
+    font-size:14px;
+    letter-spacing: 0.75pt;
+    background-color: #242035;
+    transition: all .5s ease-in-out; -moz-transition: all .5s ease-in-out; -webkit-transition: all .5s ease-in-out;
+}
+.lobby-tabs a.active, .my-contests-tabs a.active, .how-to-play-tabs a.active {
+    background-color: #3a364e;
+}
+.lobby-tabs ul li a:hover, .my-contests-tabs ul li a:hover, .how-to-play-tabs ul li a:hover {
+	background-color: #36324a;
+}
+.contest-game .contest-left {
+    width: 70px;
+    padding: 15px 10px;
+    cursor: pointer;
+}
+.contest-game .contest-left img {
+	width:100%;
+	display:block;
+}
+.contest-game a {
+	color:white;
+}
+.contest-game {
+/*     border-bottom: 1px solid #3a364e; */
+    cursor:pointer;
+    padding:1em 0;
+    position:relative;
+}
+.lobby-games {
+	padding-top:15px;
+}
+.lobby-games .contest-game.show:nth-of-type(even) {
+    background-color: #191833;
+}
+.page-box .lobby-main .section-header {
+	text-align: left;
+	margin-bottom:1em;
+}
+.lobby-games .contest-game {
+	opacity:0;
+	left:-20px;
+	display:none;
+	transition: all .5s ease-in-out; -moz-transition: all .5s ease-in-out; -webkit-transition: all .5s ease-in-out;
+}
+.lobby-games .contest-game.show {
+	opacity:1;
+	left:0px;
+	display:block;
+}
+.contest-game.locked:after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(8, 4, 37, 0.6);
+    content: ' ';
+    display:none;
+}
+.contest-game.locked {
+	cursor: default;
+}
+.contest-game .contest-right {
+    padding: 0 1.5em;
+}
+.contest-game .contest-title {
+	font-size:20px;
+	line-height:24px;
+}
+.contest-pga .contest-title {
+	margin-bottom:3px;
+}
+.contest-tourney-name {
+    font-size: 18px;
+    font-weight: 100;
+    margin: 0 0 10px;
+}
+.contest-game .contest-type {
+    font-size: 12px;
+    font-weight:400;
+    text-align: center;
+    line-height: 11px;
+    text-transform: uppercase;
+    margin: 8px 0 0;
+    letter-spacing: 0.75pt;
+}
+.contest-game .contest-date {
+    color: #909090;
+    font-size: 12px;
+    margin: 2px 0;
+    letter-spacing: 0.5pt;
+}
+.contest-begins {
+    background-color: #3a364e;
+    font-size: 12px;
+    padding: 5px 15px;
+    display:inline-block;
+    letter-spacing: 1pt;
+    margin:5px 0 0;
+}
+
+/* CONTEST */
+
+.hero-details .contest-type {
+    background-color: #3a364e;
+    font-size: 12px;
+    padding: 5px 15px;
+    font-weight:bold;
+    display: inline-block;
+    letter-spacing: 1pt;
+    margin: 5px 0 0;
+    text-transform: uppercase;
+}
+.hero-details .contest-begins-time {
+    background-color: #3a364e;
+    font-size: 12px;
+    padding: 5px 15px;
+    display: inline-block;
+    letter-spacing: 1pt;
+    margin: 5px 0 0;
+}
+.hero-details .contest-status {
+    display: inline-block;
+}
+.hero-details .contest-status span {
+    display: inline-block;
+    background-color: #61a55d;
+    font-size: 12px;
+    padding: 5px 15px;
+    letter-spacing: 0.5pt;
+    margin: 20px 0 0;
+    font-weight:bold;
+    text-transform: uppercase;
+}
+.hero-details .contest-status-closed span, .hero-details .contest-status-in-progress span, .hero-details .contest-status-finished span {
+	background-color: #d92b4c;
+}
+.contest-mlb.in-progress .contest-begins {
+	background-color: #d9354c;
+	font-weight:700;
+}
+.lobby-live-recent-contests {
+	margin:6em 0 0;
+}
+.contest-sidebar-left {
+    float: left;
+    width: 230px;
+    padding:0 1em 0 0;
+    border-right: 1px solid #161530
+}
+.sidebar-section {
+	margin-bottom:2em;
+	clear:both;
+}
+.sidebar-section .contest-game {
+	padding:0;
+}
+.sidebar-section .contest-game:nth-of-type(odd), .section-left .contest-game:nth-of-type(odd) {
+    background-color: #191833;
+}
+.contest-main {
+	float:left;
+	width:calc(100% - 230px); 
+	padding-left: 1em;
+}
+.page-box .section-header, .team-header, .odds-header {
+    background-color: #3a364e;
+    font-size: 14px;
+    padding: 5px 15px;
+    font-weight:bold;
+    display: block;
+    position:relative;
+    text-align: center;
+}
+.team-header {
+	font-weight:bold;
+	background-color: #242035;
+}
+.team-header:after {
+    content: '+';
+    position: absolute;
+    top: 0px;
+    right: 20px;
+    font-size: 20px;
+}
+.team-header span.team-winner {
+    color: #61a55d;
+    margin: 0 3px;
+    font-size: 14px;
+}
+.contest-status-locked .team-header:after, .contest-status-completed .team-header:after, .contest-status-live .team-header:after {
+	display:none;
+}
+
+.team-added .team-header:after {
+    content: '-';
+}
+.team-header .at-vs {
+	font-weight:400;
+	font-size:12px;
+}
+.team-header span {
+    font-weight: 400;
+    font-size: 11px;
+    padding-left: 4px;
+    letter-spacing: 1pt;
+}
+.team-header .team-header-opp {
+	font-weight:400;
+	font-size:12px;
+}
+.odds-header {
+	font-size: 12px;
+	font-weight:100;
+    letter-spacing: 0.75pt;
+    text-transform: uppercase;
+}
+.contest-odds {
+    margin: 10px 15px;
+}
+.your-wagers {
+    padding: 0 0 0 15px;
+    font-weight: bold;
+    font-size: 13px;
+    margin: 1.5em 0 1.5em;
+}
+.wager-list {
+    padding: 0;
+    margin: 10px 0 30px;
+    font-size: 12px;
+    line-height: 18px;
+    color: white;
+    display:none;
+/*     border-bottom: 1px solid #3a364e; */
+}
+.wager-list-item:nth-of-type(odd) {
+    background: #191833;
+}
+.wager-list-item.loss {
+    color: #d92b4c;
+}
+.wager-list-item.win {
+    color: #4e8c4a;;
+}
+.wager-list-item {
+    padding: 8px 10px;
+    letter-spacing: 0.5pt;
+    text-align: left;
+    font-weight:700;
+}
+.wager-list-item .in-the-money {
+    display: inline-block;
+    background-color: #61a55d;
+    padding: 0 8px;
+    font-weight: bold;
+    margin-left: 6px;
+    font-size: 11px;
+}
+.show-all-wagers {
+	padding-left:5px;
+}
+.contest-team {
+    width: 33.33%;
+    float: left;
+    position: relative;
+    margin-bottom: 0.5em;
+    margin-top: 1em;
+}
+.contest-team-wrap {
+    margin: 0 0 0 12px;
+    z-index:99;
+    /*
+    position: absolute;
+    width: 96%;
+    z-index: 9999;
+    background-color: rgba(8, 4, 37, 0.85);
+	*/
+}
+.contest-team.show-overlay {
+	cursor: pointer;
+}
+.contest-odds .odds-value {
+	font-weight:bold;
+	letter-spacing: 1pt;
+	font-size:14px;
+}
+.contest-positions {
+	text-align: center;
+    font-size: 13px;
+    margin: 0;
+    padding:8px 0 0;
+/*     background-color: #09042f; */
+    border: 1px solid #171631;
+}
+.team-position {
+    margin: 0;
+    letter-spacing: 0.75pt;
+    font-size: 12px;
+    line-height:23px;
+    white-space: nowrap;
+    cursor:pointer;
+    padding:2px 0;
+    position:relative;
+}
+.team-position.expanded {
+	font-weight:bold;
+}
+.team-position span {
+	display:inline-block;
+	position:relative;
+}
+.team-position span:before {
+    content: '\f078';
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    position: absolute;
+    right: -20px;
+    top: 1px;
+    font-size: 9px;
+    opacity: 0;
+    transition: opacity .25s ease-in-out; -moz-transition: opacity .25s ease-in-out; -webkit-transition: opacity .25s ease-in-out;
+}
+.position-html {
+	display:none;
+	font-weight:400;
+    font-size: 11px;
+    line-height: 19px;
+    letter-spacing: 0.5pt;
+}
+.team-position .injury-note {
+    display: inline-block;
+    position:relative;
+    cursor: pointer;
+}
+.team-position .injury-note .injury-message {
+    position: absolute;
+    top: 0;
+    width: 300px;
+    white-space: normal;
+    right:0;
+    background-color: rgba(255, 255, 255, 0.9);
+    font-weight: bold;
+    color: #080424;
+    letter-spacing: 0.25pt;
+    font-size: 12px;
+    padding: 10px;
+    border-radius: 4px;
+    display:none;
+    z-index:1;
+}
+.team-position .injury-note:hover .injury-message {
+	display:block;	
+}
+.contest-tabs-wrap {
+    margin: 0 0 2em;
+    padding: 1em;
+    color: white;
+    background-color: #1a1833;
+    box-shadow: 1px 1px 1px #000000;
+    opacity:0;
+    left:-20px;
+    position:relative;
+    transition: all .5s ease-in-out; -moz-transition: all .5s ease-in-out; -webkit-transition: all .5s ease-in-out;
+}
+.contest-tabs-wrap.show {
+	opacity:1;
+	left:0;
+}
+.contest-tab {
+    text-align: center;
+    max-width: 0px;
+    overflow: hidden;
+    transition: all .25s ease-in-out; -moz-transition: all .25s ease-in-out; -webkit-transition: all .25s ease-in-out;
+}
+.contest-tab.show {
+	display:table-cell;
+	max-width: 100%;
+    padding: 1em 1em 0 0;
+}
+.contest-tab-teams, .contest-tab-mixed {
+	display:none;
+	float:left;
+	padding: 1em 1em 0 0;
+}
+.contest-tab-teams.show, .contest-tab-mixed.show {
+	display:block;
+}
+.contest-tab-row {
+	float: left;
+    clear: both;
+}
+.contest-tab.label-tab.show {
+	padding:1em 0;
+}
+.contest-tab .tab-header {
+    font-weight: bold;
+    font-size: 12px;
+    margin:5px 0;
+    letter-spacing: 0.75pt;
+}
+.contest-tab select {
+	min-width:200px;
+	font-family: 'Lato', sans-serif;
+    -webkit-appearance: none;
+    outline:none;
+    background-color: #39384c;
+    border: none;
+    border-radius: 0;
+    color: white;
+    padding: 10px 25px 10px 5px;
+    font-size: 11px;
+    letter-spacing: 0.75px;
+}
+.wager-tab .wager-label, .wager-amount-tab .wager-amount-label, .make-a-bet-label {
+    display: inline-block;
+    font-weight: bold;
+    font-size: 11px;
+    margin-right: 10px;
+    letter-spacing: 0.25pt;
+}
+.make-a-bet-label {
+/* 	margin-top:10px; */
+}
+.tab-header.hide {
+	opacity:0;
+}
+span.wager-step {
+    font-weight: bold;
+    font-size: 18px;
+    padding-right: 5px;
+}
+.wager-descriptions {
+    display: inline-block;
+}
+.wager-description {
+    display: none;
+    font-size: 12px;
+    padding: 5px 10px;
+    cursor:default;
+    font-weight: 700;
+    color: white;
+    background-color: #61a55d;
+    letter-spacing: 0.25pt;
+    margin-left: 10px;
+}
+.wager-description.show {
+	display:block;
+}
+.wager-amount-tab {
+    margin: 15px 0 0;
+    padding-top: 25px;
+    border-top: 1px solid #242035;
+    padding-bottom:10px;
+}
+.wager-tab {
+    margin: 4px 0 -12px;
+    padding-bottom: 27px;
+    border-bottom: 1px solid #242035;
+}
+.wager-tab select {
+	display:inline-block;
+	font-family: 'Lato', sans-serif;
+    -webkit-appearance: none;
+    background-color: #39384c;
+    border: none;
+    border-radius: 0;
+    color: white;
+    padding: 10px 35px 10px 10px;
+    font-size: 13px;
+    letter-spacing: 0.75px;
+}
+input.wager-amount {
+    -webkit-appearance: none;
+    background-color: #39384c;
+    border: none;
+    padding: 10px;
+    font-size: 13px;
+    letter-spacing: 0.75px;
+    border-radius: 0;
+    color:white;
+    display:inline-block;
+    font-family: 'Lato', sans-serif;
+}
+.contest-tabs-wrap .selectdiv {
+	position:relative;
+	display:inline-block;
+}
+.contest-tabs-wrap .selectdiv select::-ms-expand {
+    display: none;
+}
+.contest-tabs-wrap .selectdiv:after {
+	content: '▼';
+    font-family: Arial;
+    color: white;
+    right: 8px;
+    top: 9px;
+    padding: 0 0 2px;
+    position: absolute;
+    pointer-events: none;
+    font-size: 11px;
+}
+input.submit-bet {
+    -webkit-appearance: none;
+    background-color: #61a55d;
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    margin: 0 0 0 10px;
+    font-weight: 600;
+    border-radius: 3px;
+    opacity: 1;
+    font-size: 13px;
+    cursor: pointer;
+    position:relative;
+    outline:none;
+    font-family: 'Lato', sans-serif;
+}
+input.submit-bet.show {
+	display:inline-block;
+}
+input.submit-bet.disabled {
+	color:#c7c7c7;
+	background-color: #999999;
+	cursor:default;
+	left:0 !important;
+	top:0 !important;
+}
+.wager-submitted-message {
+    background-color: #61a55d;
+    padding: 20px 20px;
+    font-size: 14px;
+    letter-spacing: 0.5pt;
+}
+.submit-message-icon {
+    display: inline;
+    font-size: 18px;
+    line-height: 22px;
+    padding-right: 5px;
+}
+.wager-submitted-message.error {
+	background-color:#d92b4c;
+}
+.wager-submitted-message a {
+	color: white;
+    font-weight: bold;
+	/* 	text-decoration: underline; */
+}
+.wager-submitted-message strong {
+	text-transform: uppercase;
+    font-weight: 400;
+}
+.total-winnings-proj {
+    display: none;
+    font-size: 13px;
+    letter-spacing: 0.5pt;
+    margin-left: 11px;
+}
+.total-pts {
+	font-weight: bold;
+    font-size: 13px;
+    background-color: #181732;
+    padding: 4px 0;
+    line-height: 23px;
+    margin: 8px 0 0;
+    padding-right: 10px;
+    letter-spacing: 0.75pt;
+    text-transform: uppercase;
+}
+.refresh-live {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+    cursor: pointer;
+}
+.total-winnings-proj.show {
+	display:inline-block;
+}
+input.wager-amount::placeholder {
+    color: white;
+    font-size:12px;
+}
+.make-a-bet-header {
+    margin: 0 0 0.75em;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 20px;
+    padding: 0 0 12px;
+    display: block;
+/*    border-bottom: 1px solid #383a4a; */
+}
+
+/* MY CONTESTS */
+.my-contests-grid {
+	margin:1em 0;
+}
+.my-contests {
+    display: none;
+}
+.my-contests.show {
+	display:block;
+}
+.my-contests .wager-type {
+    text-transform: uppercase;
+}
+.my-contests .table-heading {
+	font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    background: #3a364e;
+    height: 25px;
+}
+.my-contests a.wager-row {
+    font-size: 13px;
+    line-height: 35px;
+    color:white;
+    height:100px;
+}
+.my-contests .wager-status {
+	font-weight:bold;
+}
+.my-contests .wager-status-loss {
+	color: #d92b4c !important;
+}
+.my-contests .wager-status-win {
+	color: #61a55d !important;
+}
+.my-contests .wager-contest a {
+    color: white;
+    padding:10px;
+}
+.my-contests .wager-row > .table-cell {
+    line-height: 16px;
+    font-size:12px;
+    text-align: center;
+    padding:10px 0;
+}
+.my-contests .wager-row:nth-of-type(even) {
+	background-color: #131435;
+}
+.my-contests .wager-row > .table-cell.wager-contest {
+	padding:0;
+}
+.wager-row:nth-child(even):not('.wager-status-win') .table-cell, .wager-row:nth-child(even):not('.wager-status-loss') .table-cell {
+    background-color: #131435;
+}
+.my-contests > .table {
+	border-spacing: 2px;
+}
+.leaderboard-wrap .leaderboard-user {
+    font-size: 13px;
+    color:white;
+}
+.leaderboard-wrap .table-cell {
+	padding: 5px;
+}
+.leaderboard-wrap .leaderboard-username {
+	font-size: 11px;
+}
+.leaderboard-wrap .leaderboard-balance {
+	font-size:12px;
+}
+.leaderboard-wrap .leaderboard-user.strong a {
+	font-size: 18px;
+}
+.leaderboard-wrap .leaderboard-user strong {
+	float:right;
+}
+.leaderboard-user:nth-of-type(even) {
+	background-color: #191833;
+}
+.leaderboard-user a {
+    display: block;
+    padding: 6px 5px;
+    color:white;
+    font-size:12px;
+}
+.leaderboard-user a:hover {
+    opacity:0.7;
+}
+.section-left {
+	margin:0 0 2.5em;
+	clear:both;
+}
+.section-left .contest-game .contest-title {
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: bold;
+}
+.section-left .contest-game .contest-right {
+    padding: 0 0 0 0.5em;
+}
+.sidebar-section .contest-game .contest-right {
+    padding: 0 1.5em 0 0.5em;
+}
+.section-left .contest-game .contest-left {
+    width: 40px;
+    padding: 5px 5px 5px 12px;
+}
+.section-left .contest-game .contest-type, .recent-contests .contest-game .contest-type {
+	font-size:10px;
+	letter-spacing: 0.25pt;
+}
+.section-left .contest-game .contest-date, .recent-contests .contest-game .contest-date {
+	font-size:11px;
+}
+.footer .section-social {
+	margin:0 auto;
+}
+.leaderboard-wrap {
+    float: left;
+    width: 50%;
+    padding: 0 2em;
+}
+.leaderboard.page-box .leaderboard-wrap {
+	width: 100%;
+	padding:0;
+}
+.sidebar-section .leaderboard-wrap, .section-left .leaderboard-wrap {
+	width:100%;
+	padding:0;
+	margin-bottom:2em;
+}
+.profile-grid .recent-activity, .profile-grid .biggest-wins, .profile-grid .leaderboard-wrap, .profile-grid .bettor-intelligence-wrap {
+	width:25%;
+	float:left;
+	padding:0 0.5em;
+}
+.leaderboard-inner {
+    border: 1px solid #191833;
+}
+
+/* HOW TO PLAY */
+
+.how-to-play {
+	display:none;
+	margin:2em 0 0;
+}
+.how-to-play.active {
+	display:block;
+}
+#at4-share, .at-share-dock-outer {
+	display:none;
+}
+
+/* PROFILE PAGE */
+
+.recent-activity .table {
+    font-size: 12px;
+    border: 1px solid #191833;
+    text-align: center;
+}
+.recent-activity .table-cell.table-header {
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    font-size: 10px;
+    background-color: #242035;
+    padding: 5px 0;
+}
+.recent-activity .table-cell {
+    display: table-cell;
+    padding: 8px 0px;
+    position:relative;
+}
+.recent-activity .table-cell.league, .recent-activity .table-cell.type {
+	font-weight:bold;
+}
+.recent-activity .league-logo {
+    background-size: contain;
+    position: relative;
+    width: 50px;
+    height: 50px;
+}
+.recent-activity span.league-name {
+    display: none;
+}
+.recent-activity .league-logo {
+    background-size: contain;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+}
+.recent-activity .table-row:nth-of-type(even) {
+    background-color: #191833;
+}
+.recent-activity .table-cell.date {
+/*     font-weight: 100; */
+}
+.recent-activity .wager-row {
+	color:white;
+}
+
+.biggest-wins .table {
+    font-size: 12px;
+    border: 1px solid #191833;
+    text-align: center;
+}
+.biggest-wins .table-cell.table-header {
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    font-size: 10px;
+    background-color: #242035;
+    padding: 5px 0;
+}
+.biggest-wins .table-cell {
+    display: table-cell;
+    padding: 8px 0px;
+    position:relative;
+}
+.biggest-wins .table-cell.league, .biggest-wins .table-cell.type {
+	font-weight:bold;
+}
+.biggest-wins .league-logo {
+    background-size: contain;
+    position: relative;
+    width: 50px;
+    height: 50px;
+}
+.biggest-wins span.league-name {
+    display: none;
+}
+.biggest-wins .league-logo {
+    background-size: contain;
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+}
+.biggest-wins .table-row:nth-of-type(even) {
+    background-color: #191833;
+}
+.biggest-wins .table-cell.date {
+/*     font-weight: 100; */
+}
+.biggest-wins .wager-row {
+	color:white;
+}
+.mobile-menu {
+	display:none;
+}
+.no-contests {
+    font-weight: bold;
+    font-size: 13px;
+    margin: 10px 0;
+}
+.profile-grid {
+    overflow: auto;
+    margin-bottom: 1em;
+}
+.view-all-wagers {
+    float: right;
+    color: #fff;
+    font-size: 12px;
+    margin: 10px 0;
+    letter-spacing: .25pt;
+    font-weight: 700;
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: #231f35;
+    padding: 6px;
+}
+
+/* Ultimate Member */
+
+.um .um-field-label {
+    color: white;
+}
+.um-profile {
+	opacity:1;
+	transition: all .25s ease-in-out;
+    -moz-transition: all .25s ease-in-out;
+    -webkit-transition: all .25s ease-in-out;
+}
+.um-profile .um-cover-e {
+	max-height:433px;
+}
+.um .um-form {
+	color:white;
+}
+.um-page-user .um-field-label label {
+    font-size: 13px !important;
+}
+.um-page-register .um .um-field-label, .um-page-login .um .um-field-label {
+	color:white
+}
+.um-page-register .um-field-checkbox-option, .um-page-register .um-field-radio-option, .um-page-login .um-field-checkbox-option, .um-page-login .um-field-radio-option, .um-page-login .um-link-alt {
+	color:white !important;
+	font-size: 13px;
+}
+.um-page-register .um input[type=submit].um-button, .um-page-register .um a.um-button, .um-page-login .um input[type=submit].um-button, .um-page-login .um a.um-button, .um-page-account .um input[type=submit].um-button, .um-page-account .um input[type=submit].um-button:focus, .um-page-account .um a.um-button, .um-page-account .um a.um-button.um-disabled:hover, .um-page-account .um a.um-button.um-disabled:focus, .um-page-account .um a.um-button.um-disabled:active, .um-page-user .um input[type=submit].um-button, .um-page-user .um input[type=submit].um-button:focus, .um-page-user .um a.um-button, .um-page-user .um a.um-button.um-disabled:hover, .um-page-user .um a.um-button.um-disabled:focus, .um-page-user .um a.um-button.um-disabled:active  {
+    background: #201a3a;
+    background-color: transparent;
+    color: white;
+    padding: 8px 17px;
+    -webkit-appearance: none;
+    font-size: 13px;
+    font-weight: bold !important;
+    outline: none;
+    transition: all .3s ease-in-out;
+    -moz-transition: all .3s ease-in-out;
+    -webkit-transition: all .3s ease-in-out;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1px solid white !important;
+}
+.um-page-register input#um-submit-btn:hover, .um-page-register .um a.um-button.um-disabled:hover, .um .um-button.um-alt:hover, .um-page-register .um input[type=submit].um-button.um-alt:hover, .um-page-login input#um-submit-btn:hover, .um-page-login .um a.um-button.um-disabled:hover, .um .um-button.um-alt:hover, .um-page-login .um input[type=submit].um-button.um-alt:hover, .um-page-account .um input[type=submit].um-button:hover, .um-page-user input#um-submit-btn:hover, .um-page-user .um a.um-button.um-disabled:hover, .um .um-button.um-alt:hover, .um-page-user .um input[type=submit].um-button.um-alt:hover, .um-page-user .um input[type=submit].um-button:hover {
+	background-color:white;
+	color:#444;
+}
+.um-page-register a.um-toggle-gdpr {
+    font-weight: bold;
+    color: white;
+    font-size: 11px;
+    text-decoration: underline;
+}
+.um-page-register .um .um-form input[type=text], .um-page-register .um .um-form input[type=tel], .um-page-register .um .um-form input[type=password], .um-page-register .um .um-form textarea, .um-page-login .um .um-form input[type=text], .um-page-login .um .um-form input[type=tel], .um-page-login .um .um-form input[type=password], .um-page-login .um .um-form textarea  {
+	color:black;
+}
+.um, .um-profile.um .um-profile-headericon a {
+	color:white;
+}
+.um, .um-profile.um .um-profile-headericon .um-dropdown-b a {
+    color: #444;
+    font-weight: bold;
+    font-size: 12px;
+}
+.um-profile.um .um-profile-headericon .um-dropdown li a:hover {
+	color:#444 !important;
+	text-decoration: underline !important;
+}
+.um-page-register .page-title, .um-page-login .page-title {
+    text-align: center;
+    text-transform: uppercase;
+    margin: 0.75em 0 0;
+    font-size: 22px;
+}
+.um-profile.um .um-profile-headericon a:hover, .um-profile.um .um-profile-edit-a.active {
+	color:gray;
+}
+
+.um-page-register .um .um-form input[type=text], .um-page-register .um .um-form input[type=tel], .um-page-register .um .um-form input[type=number], .um-page-register .um .um-form input[type=password], .um-page-register .um .um-form textarea, .um-page-register .um .upload-progress, .um-page-register .select2-container .um-page-register .select2-choice, .um-page-register .select2-drop, .um-page-register .select2-container-multi .select2-choices, .um-page-register .select2-drop-active, .um-page-register .select2-drop.select2-drop-above, .um-page-login .um .um-form input[type=text], .um-page-login .um .um-form input[type=tel], .um-page-login .um .um-form input[type=number], .um-page-login .um .um-form input[type=password], .um-page-login .um .um-form textarea, .um-page-login .um .upload-progress, .um-page-login .select2-container .um-page-login .select2-choice, .um-page-login .select2-drop, .um-page-login .select2-container-multi .select2-choices, .um-page-login .select2-drop-active, .um-page-login .select2-drop.select2-drop-above, .um-page-account .um .um-form input[type=text], .um-page-account .um .um-form input[type=tel], .um-page-account .um .um-form input[type=number], .um-page-account .um .um-form input[type=password], .um-page-account .um .um-form textarea, .um-page-account .um .upload-progress, .um-page-account .select2-container .um-page-account .select2-choice, .um-page-account .select2-drop, .um-page-account .select2-container-multi .select2-choices, .um-page-account .select2-drop-active, .um-page-account .select2-drop.select2-drop-above{
+    border: none !important;
+    border-radius: 0;
+}
+.um-page-register .um-field-label label, .um-page-login .um-field-label label {
+    font-size: 13px !important; 
+}
+.um-page-register main, .um-page-login main {
+	background-color: #161131;
+    padding: 1em;
+    margin: 1em 0 0;
+}
+.um-page-register #inner-content.wrap, .um-page-login #inner-content.wrap {
+    padding: 80px 1em 1em;
+}
+.um .um-tip:hover, .um .um-field-radio.active:not(.um-field-radio-state-disabled) i, .um .um-field-checkbox.active:not(.um-field-radio-state-disabled) i, .um .um-member-name a:hover, .um .um-member-more a:hover, .um .um-member-less a:hover, .um .um-members-pagi a:hover, .um .um-cover-add:hover, .um .um-profile-subnav a.active, .um .um-item-meta a, .um-account-name a:hover, .um-account-nav a.current, .um-account-side li a.current span.um-account-icon, .um-account-side li a.current:hover span.um-account-icon, .um-dropdown li a:hover, i.um-active-color, span.um-active-color {
+    color: white !important;
+}
+.um-page-user .um-profile.um .um-name a {
+	color:white;
+}
+.um-page-user .page-title {
+	display:none;
+}
+.um-page-user .um-profile-nav {
+    background: #3a364e;
+}
+.um-page-user .um-header {
+	border-bottom:none;
+}
+.um .um-field-group-head, .picker__box, .picker__nav--prev:hover, .picker__nav--next:hover, .um .um-members-pagi span.current, .um .um-members-pagi span.current:hover, .um .um-profile-nav-item.active a, .um .um-profile-nav-item.active a:hover, .upload, .um-modal-header, .um-modal-btn, .um-modal-btn.disabled, .um-modal-btn.disabled:hover, div.uimob800 .um-account-side li a.current, div.uimob800 .um-account-side li a.current:hover, .um-profile-nav-item a:hover {
+	background:transparent !important;
+}
+.um-profile-nav-item a:hover {
+	text-decoration: underline !important;
+}
+.um-page-user .um-profile-nav {
+	display:none;
+}
+.um-page-account h1.page-title {
+	opacity:0;
+}
+.um-page-account .um-account-main div.um-account-heading {
+	color:white;
+}
+.um-page-account .um-field-label label {
+    font-size: 13px !important;
+    color: white;
+}
+.um-page-account .um .um-form input[type=text], .um-page-account .um .um-form input[type=tel], .um-page-account .um .um-form input[type=password], .um-page-account .um .um-form textarea {
+	color:black;
+}
+.um-page-account .um-account-name a {
+	color:white;
+}
+.um-page-user .um-meta-text {
+	display:none;
+}
+.um-account-side li a span.um-account-icon i {
+	color:#444;
+}
+div.um-modal .upload, .um-modal-btn {
+    color: black !important;
+    border: 1px solid black !important;
+    font-size: 12px !important;
+}
+.um-page-user #inner-content.wrap {
+    padding: 80px 0 0;
+}
+.um-page-user .um-header {
+	padding:0;
+}
+.um-page-user #content {
+	background-color: #080424;
+	width: 1400px;
+	max-width: 100%;
+	margin: 0 auto;
+}
+.um.um-profile {
+	margin-bottom:0 !important;
+	max-width:1170px !important;
+}
+
+@media (max-width:767px) {
+	
+	.your-wagers {
+		padding: 15px 0;
+		margin: 0;
+	}
+    .show-all-wagers {
+	    font-size: 12px;
+    }
+    .refresh-live {
+	    position: relative;
+	    top: 0;
+	    right: 2px;
+	    float: right;
+	}
+	.wager-list {
+   		margin: 10px 0 0px;
+    }
+    .contest-team-wrap {
+    	margin: 0;
+	}
+    h2.section-header.projections-header {
+    	margin-left: 0;
+    }
+	.wager-tab {
+		padding-bottom:10px;
+	}
+	.um-page-user .page-template-default #inner-content.wrap {
+	    padding-top: 2em;
+	}
+	.user-box {
+		padding-right:1em;
+	}
+	.league-MLB.page-hero, .league-NASCAR.page-hero {
+		background-position: top;
+	}
+	.my-contests.show {
+		overflow-x:scroll;
+		-webkit-overflow-scrolling: touch;
+	}
+	.my-contests .wager-row > .table-cell {
+		min-width:160px;
+	}
+	.my-contests .wager-row > .table-cell.wager-status {
+		min-width:120px;
+	}
+	.my-contests .wager-row > .table-cell.wager-id, .my-contests .wager-row > .table-cell.wager-type {
+		min-width:80px;
+	}
+	.my-contests .wager-row > .table-cell.wager-winners {
+		min-width:250px;
+	}
+	.nav-signup {
+		margin-right: 15px;
+	}
+	.lobby-tabs ul li a, .my-contests-tabs ul li a, .how-to-play-tabs ul li a {
+		padding:15px 12px;
+	}
+	a.nav-bets {
+		font-size:11px;
+		padding:0;
+		margin-right:10px;
+	}
+	.leaderboard-wrap {
+	    width: 100%;
+	    padding: 0;
+	    margin-bottom: 2em;
+	}
+	footer.footer {
+		padding-bottom:5em;
+	}
+	.mobile-menu {
+	    display: table;
+	    position: fixed;
+	    bottom: 0;
+	    left: 0;
+	    width: 100%;
+	    z-index: 3;
+	    background-color: #111;
+	    font-size: 11px;
+	    table-layout: fixed;
+	}
+	a.mobile-menu-item {
+	    display: table-cell;
+	    vertical-align: middle;
+	    text-align: center;
+	    padding: 15px 0 20px;
+	    color: white;
+	    font-weight: bold;
+	    
+	}
+	.mobile-menu-item span {
+		display:block;
+	}
+	
+	.contest-sidebar-left {
+		display:none;
+		width:100%;
+		padding: 0;
+		margin:1em 0;
+		border-right: none;
+	}
+	.section-left .contest-game {
+    	padding: 1em 0;
+	}
+	.hero-details.centered-vertical {
+		top:50%;
+	}
+	.page-template-default #inner-content.wrap {
+		padding-top:1em;
+	}
+	a.nav-logo {
+		margin-left:15px;
+	}
+	.nav-menu-right a.nav-profile {
+		display:none;
+	}
+	.profile-grid .recent-activity, .profile-grid .biggest-wins, .profile-grid .leaderboard-wrap, .profile-grid .bettor-intelligence-wrap {
+		width:100%;
+		margin-bottom:2em;
+		max-width:100%;
+	}
+	section.home-section.home-section-5.section-image{
+		padding:2em 0 0;
+	}
+	.my-contests-page.page-box.wrap {
+	    padding: 1em 0;
+	}
+	.my-contests-tabs {
+		padding:0 1em;
+	}
+	.my-contests .table-heading {
+		padding:0 1em;
+	}
+	.contest-tourney-name {
+	    font-size: 14px;
+	    margin: 0 0 5px;
+	}
+	.tab-header.hide {
+		display:none;
+	}
+	.wager-amount-tab {
+		margin:0;
+	}
+	.team-position .injury-note .injury-message {
+		right:0;
+	}
+	.wager-description {
+		font-size: 11px;
+		padding-left: 7px;
+		padding-top: 6px;
+		text-align: center;
+		padding-right: 7px;
+		margin: 10px 0;
+	}
+	.contest-tab.label-tab.show {
+	    padding: 1.5em 0 0.5em;
+	}
+	.wager-amount-tab {
+		border-top:none;
+	}
+	.wager-amount-label {
+    	border-top: 1px solid #242035;
+	    padding-top: 1.5em;
+	}
+	.lobby-sidebar {
+		width:100%;
+	}
+	.my-contests .fixed-layout {
+		table-layout: auto;
+	}
+	.my-contests .wager-row, .my-contests .table-heading {
+	    font-size: 11px;
+	}
+	.my-contests-main {
+		padding:0;
+	}
+	.wager-tab .wager-label, .wager-amount-tab .wager-amount-label, .make-a-bet-label {
+		margin-right:0;
+	}
+	input.wager-amount {
+		width:100%;
+		display:block;
+	}
+	.wager-label, .wager-amount-label {
+		width: 100%;
+		margin: 0 0 0.5em;
+	}
+	.contest-tab {
+		max-height: 0;
+		display: inline-block;
+		text-align: left;
+	}
+	.contest-tab.label-tab .tab-header {
+		display:none;
+	}
+	.wager-tab select, .contest-tab select {
+		width:100%;
+	}
+	.contest-tabs-wrap .selectdiv {
+		width:100%;
+	}
+	.contest-tab.show {
+		display:block;
+		width:100%;
+		max-height:100%;
+		padding: 0em 0 1em 0;
+	}
+	.contest-tabs {
+		width:100%;
+		display:block;
+		margin: 0;
+	}
+	.contest-main {
+	    width: 100%;
+	    padding-left: 0em;
+	    padding-right:0em;
+	}
+	.contest-team {
+    	width: 100%;
+    }
+	input.submit-bet {
+		display:block;
+		margin: 20px 0 0;
+		width: 100%;
+    }
+    .total-winnings-proj.show {
+	    display: block;
+	    text-align: center;
+	    margin: 10px auto 0;
+	}
+	.lobby-sidebar {
+		padding:0;
+		margin:3.5em 0 0;
+	}
+	.hero-details .contest-status span {
+		margin:2px 0 0;
+	}
+	.lobby-main {
+		padding:0;
+		width:100%;
+	}
+	a.leaderboard-btn {
+	    padding: 13px 20px;
+	    font-size: 12px;
+	    margin: 10px 0 0;
+	}
+	.lobby-tabs ul li a, .my-contests-tabs ul li a, .how-to-play-tabs ul li a {
+		font-size:12px;
+	}
+	.total-winnings-proj {
+	    font-size: 12px;
+	    margin-left: 0;
+	    display:block;
+	    margin-top: 15px;
+	    text-align: center;
+	}
+	.contest-game .contest-title {
+	    font-size: 14px;
+	    line-height: 20px;
+	}
+	.contest-game .contest-date {
+		font-size:11px;	
+	}
+	.page-hero {
+    	height: 235px; 
+    }
+	.page-hero h1 {
+		font-size: 22px;
+		line-height: 28px;
+	}
+	.page-hero h2 {
+		font-size:12px;
+	}
+	.nav-balance {
+		font-size:11px;
+	}
+	.contest-game {
+		padding:0.5em 0;
+	}
+	.added-to-ticket {
+		margin: 15px 0 0;
+	    top: 0;
+	    padding: 10px;
+	    text-align: center;
+	    display:block;
+	}
+	.slim .nav-balance, .nav-balance {
+		line-height: 30px;
+		height: 50px;
+		text-align: center;
+		vertical-align: middle;
+		padding:0 10px 0 0;
+	}
+	.section-left .contest-game .contest-right {
+	    padding: 0 0 0 1em;
+	}
+	.nav-balance .balance-amount {
+		display:block;
+		line-height: 5px;
+		font-size: 11px;
+	}
+	.home-section-text {
+		top: 57%;
+	}
+	.home-section-1 h1 {
+	    font-size: 28px;
+	    line-height: 32px;
+	}
+	.home-section-1 h2 {
+		font-size:14px;
+	}
+		
+	a.home-btn {
+		margin-bottom:10px;
+		margin-right:0;
+	}
+	
+	.home-background-1 {
+		background-image: url(/wp-content/uploads/2019/03/home-background-1.jpg);
+		background-size: cover;
+		background-position: center;
+	}
+	.home-section .section-header {
+		font-size:24px;
+		line-height:32px;
+	}
+	.section-grid-tile.table-cell {
+		display:block;
+		margin-bottom: 10px;
+	}
+	#at-custom-mobile-bar {
+		display:none !important;
+	}
+	.section-social .section-grid-tile.table-cell {
+		float:left;
+	}
+	.home-grid-title {
+		font-size:22px;
+	}
+	.section-image .section-grid-tile {
+		width:100%;
+	}
+	.section-image .centered-vertical {
+		position:relative;
+		-webkit-transform: none;
+		-ms-transform: none;
+		transform: none;
+	}
+	.home-wrapper .section-image .parallax-window {
+		min-height: auto;
+	}
+	.home-section.section-image {
+    	padding: 2em 0;
+	}
+	.section-image .section-social {
+		width:100%;
+	}
+	.section-image .section-social .section-grid-tile {
+	    width: 47%;
+	    float: left;
+	    margin: 0 4px 0;
+	}
+	.nav-menu-left {
+		display:none;
+	}
+	.hero-details .contest-type, .hero-details .contest-begins-time, .hero-details .contest-status span {
+		font-size:11px;
+	}
+	.nav-balance.noselect {
+	    padding-top: 2px;
+	    padding-right: 12px;
+	}
+}
+
+@media (min-width:1025px) {
+	
+	/*
+	.contest-team-wrap.expanded {
+		position: relative;
+	    width: calc(100% - 12px);
+	    background-color: rgba(8, 4, 37, 1);
+	}
+	*/
+	.leaderboard-username:hover {
+		text-decoration:underline;
+	}
+	.team-position:hover span:before {
+		opacity:1;
+	}
+	.team-position:hover {
+		font-weight:bold;
+	}
+	.contest-status-open-for-betting .player-position strong {
+		display:none;
+	}
+	.contest-status-open-for-betting .player-position.empty strong {
+		display:inline;
+	}
+	.recent-activity .wager-row:hover, .biggest-wins .wager-row:hover, .section-header-submenu a:hover{
+		opacity:0.7;
+	}
+	.nav-top a:hover {
+    	color: #dddddd;
+	}
+	.my-contests .wager-contest a:hover {
+		text-decoration: underline;
+	}
+	.login-box input#wp-submit:hover {	
+		background-color:white;
+		color:#080425;
+	}
+	a.nav-lobby:hover:after, a.nav-profile:hover:after, a.nav-contests:hover:after, a.nav-leaderboard:hover:after, a.nav-lobby.active:after, a.nav-profile.active:after, a.nav-contests.active:after, a.nav-leaderboard.active:after, a.nav-howtoplay:hover:after, a.nav-howtoplay.active:after {
+		width:100%;
+	}
+	.login-box a:hover {
+		text-decoration: underline;
+	}
+	.contest-game a:hover .contest-title {
+	    opacity:0.7;
+	}
+	input.submit-bet:active {
+		top:1px;
+		left:1px;
+	}
+	.my-contests a.wager-row:hover {
+		/* color:#59ABE3; */
+		opacity:0.85;
+	}
+	.team-position .injury-note:hover {
+		color:#c5c5c5;
+	}
+	.contest-team.show-overlay .team-header:after {
+		content: ' ';
+	    position: absolute;
+	    top: 0;
+	    left: 0;
+	    width: 100%;
+	    height: 100%;
+	    background-color: rgba(8, 4, 37, 0.95);
+		border: 2px solid white;
+		box-sizing: border-box;
+	}
+	.contest-team.show-overlay .team-header:before {
+		content: 'Add to ticket +';
+	    left: 0;
+	    width: 100%;
+	    text-align: center;
+	    top: 50%;
+	    -webkit-transform: translateY(-50%);
+	    -ms-transform: translateY(-50%);
+	    transform: translateY(-50%);
+	    position: absolute;
+	    z-index: 9;
+	    font-size: 16px;
+	    text-transform: uppercase;
+	    font-weight:bold;
+	}
+	.view-all-wagers:hover {
+		text-decoration: underline;
+	}
+	
+}
+
+</style>

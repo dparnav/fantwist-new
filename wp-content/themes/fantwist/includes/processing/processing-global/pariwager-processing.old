@@ -1,0 +1,5882 @@
+<?php 
+	
+//Remove "Posts" post type
+add_action( 'admin_menu', 'remove_default_post_type' );
+
+function remove_default_post_type() {
+    remove_menu_page( 'edit.php' );
+}
+	
+
+//SORTABLE CUSTOM COLUMNS FOR CONTESTS
+function contest_cpt_columns($columns) {
+
+	unset(
+		$columns['date']
+	);
+	
+	unset(
+		$columns['taxonomy-player']
+	);
+	
+	unset(
+		$columns['taxonomy-team']
+	);
+		
+	$new_columns = array(
+		'type' => 'Type',
+		'contest_date' => 'Contest Date (PT)',
+		'contest_status' => 'Status',
+	);
+    return array_merge($columns, $new_columns);
+}
+add_filter('manage_contest_posts_columns' , 'contest_cpt_columns');
+
+function custom_columns( $column, $post_id ) {
+	switch ( $column ) {
+		case 'type':
+			echo get_field('contest_type', $post_id);
+			break;
+
+		case 'contest_date':
+			//echo get_field('contest_date', $post_id);
+			//echo date('g:i a', get_field('contest_date', $post_id));
+			echo date('m-d-Y g:i a', get_field('contest_date', $post_id));
+			break;
+			
+		case 'contest_status':
+			echo get_field('contest_status', $post_id);
+			break;
+	}
+}
+
+add_action( 'manage_posts_custom_column' , 'custom_columns', 10, 2 );
+
+function contest_register_sortable( $columns ) {
+	$columns['contest_date'] = 'Contest Date (PT)';
+	return $columns;
+}
+add_filter("manage_edit-contest_sortable_columns", "contest_register_sortable" );
+
+
+
+
+
+//SORTABLE CUSTOM COLUMNS FOR WAGERS
+function wager_cpt_columns($columns) {
+	
+	unset(
+		$columns['taxonomy-wager_result']
+	);
+		
+	$new_columns = array(
+		'wager_results' => 'Wager Results',
+	);
+	
+    return array_merge($columns, $new_columns);
+    
+}
+add_filter('manage_wager_posts_columns' , 'wager_cpt_columns');
+
+function custom_wager_columns( $column, $post_id ) {
+	switch ( $column ) {
+		case 'wager_results':
+			echo get_field('wager_result', $post_id);
+			break;
+	}
+}
+
+add_action( 'manage_posts_custom_column' , 'custom_wager_columns', 10, 2 );
+
+function wager_register_sortable( $columns ) {
+	$columns['wager_results'] = 'Wager Results';
+	return $columns;
+}
+add_filter("manage_edit-wager_sortable_columns", "wager_register_sortable" );
+
+
+
+// ADMIN STYLES/SCRIPTS
+function load_admin_style() {
+
+	wp_register_script( 'admin_js', get_stylesheet_directory_uri() . '/library/js/admin-scripts.js', array('jquery'), '1.0' );
+	wp_enqueue_style( 'admin_css', get_template_directory_uri() . '/library/css/admin-styles.css', array(), '1.0');
+	wp_enqueue_script( 'admin_js' );
+
+}
+add_action( 'admin_enqueue_scripts', 'load_admin_style' );
+
+
+
+function live_scoring($league) {
+
+	if ($league == 'nba') {
+		$stats_key = 'bc9cadb71f044f38b71a0c012b97f674';
+		$league_url = 'nba';
+	}
+	else if ($league == 'mlb') {
+		$stats_key = '562f123e387a4c2bbb37395741d0a539';
+		$league_url = 'mlb';
+	}
+	else if ($league == 'nhl') {
+		$stats_key = '9e85633580fd45ed9e5c464ce10e7aee';
+		$league_url = 'nhl';
+	}
+	else if ($league == 'nfl') {
+		$stats_key = '';
+	}
+	else if ($league == 'ncaab') {
+		$stats_key = '';
+	}
+	else if ($league == 'ncaaf') {
+		$stats_key = '';
+	}
+	else if ($league == 'epl') {
+		$stats_key = '4ee248e814c54f54a6a5c5d4f6f56772';
+		$league_url = 'soccer';
+	}
+	else if ($league == 'mls') {
+		$stats_key = '4ee248e814c54f54a6a5c5d4f6f56772';
+		$league_url = 'soccer';
+	}
+	else if ($league == 'golf') {
+		$stats_key = '44691bd017be4bdabcd8af9da127ae38';
+		$league_url = 'golf';
+		$league = 'pga';
+	}
+	else if ($league == 'nascar') {
+		$stats_key = '63012620571942b08ed8028f75e32fd3';
+		$league_url = 'nascar';
+	}
+	
+	//First, retrieve 'In Progress' contests
+	
+	$args = array(
+		'post_type' => 'contest',
+		'posts_per_page' => -1,
+		'meta_query' => array(
+			array(
+				'key'     => 'contest_status',
+				'value'   => 'In Progress',
+			),
+		),
+		'tax_query' => array(
+			array(
+				'taxonomy' => 'league',
+				'field'    => 'slug',
+				'terms'    => $league,
+			),
+		),
+	);
+
+	$the_query = new WP_Query( $args );
+				
+	if ( $the_query->have_posts() ) {
+		
+		$contest_data = array();
+		$contest_dates = array();
+		
+		while ( $the_query->have_posts() ) {
+			
+			$the_query->the_post();
+			global $post;
+			
+			$this_contest = array();
+			$this_contest_date = get_field('contest_date');
+			$this_contest['date'] = strtoupper(date('Y-M-d', $this_contest_date));
+			$this_contest['date_time'] = $this_contest_date;
+			$this_contest['id'] = $post->ID;
+			
+			if ($league == 'pga' || $league == 'nascar') {
+				
+				if ($league == 'pga') {
+					$this_contest['tourney_end_date'] = get_field('contest_tournament_end_date');	
+				}
+				$this_contest['tourney_id'] = get_field('contest_tournament_id');
+								
+			}
+			else {
+				
+				if (!in_array($this_contest['date'], $contest_dates)) {
+				
+					$contest_dates[] = $this_contest['date'];
+									
+				}
+				
+			}
+			
+			$contest_data[] = $this_contest;
+
+		}
+	}
+	wp_reset_query();
+	
+	
+	$updated_contests_count = 0;
+	
+	if (!empty($contest_data)) {
+		
+		foreach ($contest_data as $contest) {
+			
+			$contest_id = $contest['id'];
+			
+			if ($league == 'pga') {
+				
+				$tourney_id = get_field('contest_tournament_id', $contest_id);
+						
+				//echo 'Leaderboard for tourney '.$tourney_id.' requested...<br>';
+				
+				$request = wp_remote_post( "https://fly.sportsdata.io/golf/v2/json/Leaderboard/$tourney_id", array(
+					'method' => 'GET',
+				    'headers' => array(
+				        'Ocp-Apim-Subscription-Key' => $stats_key,
+				    ),
+				) );
+				
+				//echo 'Leaderboard for tourney '.$tourney_id.' received...<br>';
+					
+				if (is_wp_error($request)) {
+				
+					echo '<div id="message" class="updated fade"><p>' . 'There was a problem loading the leaderboard. Try again. (Error 1)' . '</p></div>';
+				
+				}
+				else {
+					
+					$response = json_decode($request['body']);
+									
+					if ($response == '') {
+						
+						echo '<div id="message" class="updated fade"><p>' . 'There was a problem loading the leaderboard. Try again. (Error 2)' . '</p></div>';
+						exit;
+						
+					}
+					
+					$is_over = $response->Tournament->IsOver;
+					
+					if ($is_over == 0) {
+											
+						$mixed_projections = json_decode(get_field('contest_data', $contest_id));
+						$mixed_results = $mixed_projections;
+																
+						$players = $response->Players;
+											
+						foreach ($players as $player) {
+							
+							$player_id = $player->PlayerID;
+							
+							$teamIndex = 0;
+							
+							foreach ($mixed_projections as $team) {
+															
+								$playerIndex = 0;
+															
+								foreach ($team as $team_player) {
+												
+									if ($playerIndex < 4) {
+										
+										if ($player_id == $team_player->PlayerID) {
+											
+											$mixed_results[$teamIndex]->$playerIndex->TotalStrokes = $player->TotalStrokes;
+											$mixed_results[$teamIndex]->$playerIndex->DoubleEagles = $player->DoubleEagles;
+											$mixed_results[$teamIndex]->$playerIndex->Eagles = $player->Eagles;
+											$mixed_results[$teamIndex]->$playerIndex->Birdies = $player->Birdies;
+											$mixed_results[$teamIndex]->$playerIndex->Pars = $player->Pars;
+											$mixed_results[$teamIndex]->$playerIndex->Bogeys = $player->Bogeys;
+											$mixed_results[$teamIndex]->$playerIndex->DoubleBogeys = $player->DoubleBogeys;
+											$mixed_results[$teamIndex]->$playerIndex->WorseThanDoubleBogey = $player->WorseThanDoubleBogey;
+											$mixed_results[$teamIndex]->$playerIndex->HoleInOnes = $player->HoleInOnes;
+											
+											$total_points = ($player->Eagles*8)+($player->Birdies*3)+($player->Pars*0.5)-($player->Bogeys*0.5)-($player->DoubleBogeys*3)-($player->WorseThanDoubleBogey*3)+($player->HoleInOnes*15);
+											
+											$mixed_results[$teamIndex]->$playerIndex->total_points = $total_points;
+											
+											//echo $player->Name . ' updated<br>';
+											
+										}
+										$playerIndex++;
+									
+									}
+									
+								}
+								
+								$teamIndex++;
+								
+							}
+																			
+						}
+						
+						//recalculate total points
+						
+						
+						$teamIndex = 0;
+						
+						foreach ($mixed_results as $team) {
+							
+							$teamTotal = 0;
+							
+							$playerCount = 0;
+							foreach ($team as $player) {
+								
+								if ($playerCount < 4) {
+									$teamTotal += $player->total_points;
+								}
+								$playerCount++;
+							}
+							
+							$mixed_results[$teamIndex]->total_points = $teamTotal;
+							$mixed_results[$teamIndex]->team_name = 'Team ' . ($teamIndex+1);
+							
+							$teamIndex++;
+							
+						}
+						
+	
+						$sort = array();
+						foreach ($mixed_results as $key => $part) {
+							$sort[$key] = $part->total_points;
+						}
+						array_multisort($sort, SORT_DESC, $mixed_results);
+						
+						
+						// Update 6 winners
+						for ($i = 0; $i < 6; $i++) {				
+							
+							update_post_meta($contest_id, 'mixed_winner_'.($i+1), $mixed_results[$i]->team_name);
+							$projected_teams[$i]['team_name'] = $mixed_results[$i]->team_name;
+							
+						}	
+						
+							
+						update_field('contest_results', json_encode($mixed_results, JSON_UNESCAPED_UNICODE), $contest_id);
+						
+						$updated_contests_count++;
+															
+					}
+					
+				}
+			
+			}
+			else if ($league == 'mlb') {
+				
+				$contest_type = get_field('contest_type', $contest_id);
+				$contest_date = strtoupper(date('d-M-Y', get_field('contest_date', $contest_id)));
+				$projections = json_decode(get_field('contest_data', $contest_id), false, JSON_UNESCAPED_UNICODE);
+				
+				if ($contest_type == 'Teams') {
+					
+					//Get projections
+					echo '<pre>';
+					//print_r(json_decode($projections, false, JSON_UNESCAPED_UNICODE));
+					echo '</pre>';
+					
+					$request = wp_remote_post( "https://fly.sportsdata.io/v3/$league_url/stats/JSON/TeamGameStatsByDate/$contest_date", array(
+						'method' => 'GET',
+					    'headers' => array(
+					        'Ocp-Apim-Subscription-Key' => $stats_key,
+					    ),
+					) );
+					
+					$response = json_decode($request['body']);
+					
+					//print_r($response);
+					//exit;
+										
+					$teams_array = array();
+					
+					foreach ($response as $team) {
+												
+						$runs = $team->Runs;
+						$singles = $team->Singles;
+						$doubles = $team->Doubles;
+						$triples = $team->Triples;
+						$homeruns = $team->HomeRuns;
+						$rbis = $team->RunsBattedIn;
+						$walks = $team->Walks;
+						$stolenbases = $team->StolenBases;
+						$caughtstealing = $team->CaughtStealing;
+						$wins = $team->Wins;
+						$inningspitched = $team->InningsPitchedDecimal;
+						$hitsagainst = $team->PitchingHits;
+						$earnedruns = $team->PitchingEarnedRuns;
+						$pitchingwalks = $team->PitchingWalks;
+						$hitbypitch = $team->PitchingHitByPitch;
+						$strikeouts = $team->PitchingStrikeouts;
+						$nohitter = $team->PitchingNoHitters;
+						$completegames = $team->PitchingCompleteGames;
+						$pitchingruns = $team->PitchingRuns;
+						
+						$total_points = ($runs*2) + ($singles*3) + ($doubles*5) + ($triples*8) + ($homeruns*10) + ($rbis*2) + ($walks*2) + ($stolenbases*5) - ($caughtstealing*2) + ($wins*4) + ($inningspitched*0.75) - ($hitsagainst*0.5) - ($earnedruns*2) - ($pitchingwalks*0.5) - ($hitbypitch*0.5) + ($strikeouts*2) + ($nohitter*25) + ($completegames*10);
+						
+						$total_points = number_format($total_points, 2);
+					
+						$team_arr = array();
+						$team_arr['name'] = $team->Name;
+						$team_arr['total_points'] = $total_points;
+						$team_arr['opponent'] = $team->Opponent;
+						$team_arr['home_or_away'] = $team->HomeOrAway;
+						
+						if ($league_url == 'soccer') {
+							$team_arr['TeamID'] = $team->GlobalTeamId;
+						}
+						else {
+							$team_arr['TeamID'] = $team->GlobalTeamID;
+						}
+						
+						if ($total_points == 0) {
+							
+							$team_arr['postponed'] = 1;
+							
+						}
+						else {
+							
+							$team_arr['postponed'] = 0;
+							
+						}
+						
+						$teams_array[] = $team_arr;
+						
+						//print_r($team_arr); echo '<br><br>';
+
+					}
+				
+					$sort = array();
+					foreach ($teams_array as $key => $part) {
+						$sort[$key] = $part['total_points'];
+					}
+					array_multisort($sort, SORT_DESC, $teams_array);
+					
+					update_post_meta($contest_id, 'contest_results', json_encode($teams_array, JSON_UNESCAPED_UNICODE));
+					
+					$updated_contests_count++;
+					
+				}
+				else if ($contest_type == 'Mixed') {
+					
+					//Get projections and build teams
+					
+					echo '<pre>';
+					//print_r(json_decode($projections, false, JSON_UNESCAPED_UNICODE));
+					echo '</pre>';
+					
+					$catchers = $projections->catchers;
+					$pitchers = $projections->pitchers;
+					$infielders = $projections->infielders;
+					$outfielders = $projections->outfielders;
+					
+					$sort = array();
+					foreach ($catchers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $catchers);
+					
+					$sort = array();
+					foreach ($pitchers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $pitchers);
+					
+					$sort = array();
+					foreach ($infielders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $infielders);
+					
+					$sort = array();
+					foreach ($outfielders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $outfielders);
+					
+					$smallest = count($catchers);
+					if (count($pitchers) < $smallest) {
+						$smallest = count($pitchers);
+					}
+				
+					//build teams
+					
+					$mixed_teams = array();
+					$s = 0;
+					
+					for ($t = 0; $t < $smallest; $t++) {
+						
+						$new_team = array();
+						
+						$new_team[] = $infielders[$t+$s];
+						$new_team[] = $outfielders[$t+$s];
+					
+						$s++;
+						
+						$new_team[] = $infielders[$t+$s];
+						$new_team[] = $outfielders[$t+$s];
+						
+						$new_team[] = $pitchers[$t];
+						$new_team[] = $catchers[$t];
+	
+						$mixed_teams[] = $new_team;
+						
+					}
+					
+					$request = wp_remote_post( "https://fly.sportsdata.io/v3/$league_url/stats/JSON/PlayerGameStatsByDate/$contest_date", array(
+						'method' => 'GET',
+					    'headers' => array(
+					        'Ocp-Apim-Subscription-Key' => $stats_key,
+					    ),
+					) );
+									
+					$response = json_decode($request['body']);
+				
+							
+					//replace projected total_points with actual total_points
+					
+					$team_count = 0;
+					
+					foreach ($mixed_teams as $mixed_team) {
+						
+						$team_total_points = 0;
+						
+						foreach ($mixed_team as $player) {
+						
+							$projected_player_id = $player->PlayerID;
+							
+							foreach ($response as $player_results) {
+								
+								if ($league_url == 'soccer') {
+									$player_results_playerid = $player_results->PlayerId;
+								}
+								else {
+									$player_results_playerid = $player_results->PlayerID;
+								}
+													
+								if ($player_results_playerid == $projected_player_id) {
+									
+									$position = $player_results->Position;
+									$position_cat = $player_results->PositionCategory;
+									
+									if ($position == 'C') {
+										
+										$position = 'C';
+										
+									}
+									else {
+										
+										$position = $player_results->PositionCategory;
+										
+										if ($position_cat == 'DH') {
+										
+											$position = $player_results->FanDuelPosition;
+											
+											if ($position == '1B' || $position == '2B' || $position == 'SS' || $position == '3B' || $position == 'IF') {
+												
+												$position = 'IF';
+												
+											}
+											else if ($position == 'LF' || $position == 'CF' || $position == 'RF' || $position == 'OF') {
+												
+												$position = 'OF';
+												
+											}
+											
+										}
+										
+									}
+									
+									if ($position == 'IF' || $position == 'OF' || $position == 'C') {
+									
+										$runs = $player_results->Runs;
+										$singles = $player_results->Singles;
+										$doubles = $player_results->Doubles;
+										$triples = $player_results->Triples;
+										$homeruns = $player_results->HomeRuns;
+										$rbis = $player_results->RunsBattedIn;
+										$walks = $player_results->Walks;
+										$stolenbases = $player_results->StolenBases;
+										$caughtstealing = $player_results->CaughtStealing;
+									
+										$total_points = (($runs*2) + ($singles*3) + ($doubles*5) + ($triples*8) + ($homeruns*10) + ($rbis*2) + ($walks*2) + ($stolenbases*5) - ($caughtstealing*2));
+									
+									}
+									else {
+										
+										$wins = $player_results->Wins;
+										$inningspitched = $player_results->InningsPitchedDecimal;
+										$hitsagainst = $player_results->PitchingHits;
+										$earnedruns = $player_results->PitchingEarnedRuns;
+										$pitchingwalks = $player_results->PitchingWalks;
+										$hitbypitch = $player_results->PitchingHitByPitch;
+										$strikeouts = $player_results->PitchingStrikeouts;
+										$nohitter = $player_results->PitchingNoHitters;
+										$completegames = $player_results->PitchingCompleteGames;
+										$pitchingruns = $player_results->PitchingRuns;
+										
+										$total_points = (($wins*4) + ($inningspitched*0.75) - ($hitsagainst*0.5) - ($earnedruns*2) - ($pitchingwalks*0.5) - ($hitbypitch*0.5) + ($strikeouts*2) + ($nohitter*25) + ($completegames*10));
+									
+									}
+																		
+									$total_points = number_format($total_points, 2);
+									$player->total_points = $total_points;
+									$player->processed = 'true';
+									$team_total_points += $total_points;
+									
+								} 
+								
+							}
+						
+						}
+						
+						foreach ($mixed_team as $player) {
+						
+							if (isset($player->processed)) {
+								$processed = $player->processed;
+							}
+							else {
+								$player->processed = 'false';
+								$player->total_points = (int) '0';
+							}
+							
+						}
+						
+						$mixed_teams[$team_count]['team_name'] = 'Team ' . ($team_count+1);
+						$mixed_teams[$team_count]['total_team_points'] = number_format($team_total_points, 2);
+						
+						$team_count++;
+					}
+					
+	
+					// Sort by total_points
+					
+					$sort = array();
+					foreach ($mixed_teams as $key => $part) {
+						$sort[$key] = $part['total_team_points'];
+					}
+					array_multisort($sort, SORT_DESC, $mixed_teams);
+					
+
+					// Update mixed team results
+					update_field('contest_results', json_encode($mixed_teams, JSON_UNESCAPED_UNICODE), $contest_id);
+					$updated_contests_count++;
+					
+				}
+				
+				
+			}
+			
+		}
+		
+	}
+	else {
+		
+		echo '<div id="message" class="updated fade"><p>' . 'No live contests to update.' . '</p></div>';
+		exit;
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' .$updated_contests_count. ' contest(s) updated.</p></div>';
+	
+}
+
+
+function process_games_and_wagers($league) {
+	
+	//https://fantasydata.com/members/subscriptions
+	//https://developer.fantasydata.com/documentation
+	
+	if ($league == 'nba') {
+		$stats_key = 'bc9cadb71f044f38b71a0c012b97f674';
+		$league_url = 'nba';
+	}
+	else if ($league == 'mlb') {
+		$stats_key = '562f123e387a4c2bbb37395741d0a539';
+		$league_url = 'mlb';
+	}
+	else if ($league == 'nhl') {
+		$stats_key = '9e85633580fd45ed9e5c464ce10e7aee';
+		$league_url = 'nhl';
+	}
+	else if ($league == 'nfl') {
+		$stats_key = '';
+	}
+	else if ($league == 'ncaab') {
+		$stats_key = '';
+	}
+	else if ($league == 'ncaaf') {
+		$stats_key = '';
+	}
+	else if ($league == 'epl') {
+		$stats_key = '4ee248e814c54f54a6a5c5d4f6f56772';
+		$league_url = 'soccer';
+	}
+	else if ($league == 'mls') {
+		$stats_key = '4ee248e814c54f54a6a5c5d4f6f56772';
+		$league_url = 'soccer';
+	}
+	else if ($league == 'golf') {
+		$stats_key = '44691bd017be4bdabcd8af9da127ae38';
+		$league_url = 'golf';
+		$league = 'pga';
+	}
+	else if ($league == 'nascar') {
+		$stats_key = '63012620571942b08ed8028f75e32fd3';
+		$league_url = 'nascar';
+	}
+	
+	
+			
+	//First, retrieve 'In Progress' contests
+	
+	$args = array(
+		'post_type' => 'contest',
+		'posts_per_page' => -1,
+		'meta_query' => array(
+			array(
+				'key'     => 'contest_status',
+				'value'   => 'In Progress',
+			),
+		),
+		'tax_query' => array(
+			array(
+				'taxonomy' => 'league',
+				'field'    => 'slug',
+				'terms'    => $league,
+			),
+		),
+	);
+
+	$the_query = new WP_Query( $args );
+				
+	if ( $the_query->have_posts() ) {
+		
+		$contest_data = array();
+		$contest_dates = array();
+		
+		while ( $the_query->have_posts() ) {
+			
+			$the_query->the_post();
+			global $post;
+			
+			$this_contest = array();
+			$this_contest_date = get_field('contest_date');
+			$this_contest['date'] = strtoupper(date('Y-M-d', $this_contest_date));
+			$this_contest['date_time'] = $this_contest_date;
+			$this_contest['id'] = $post->ID;
+			
+			if ($league == 'pga' || $league == 'nascar') {
+				
+				if ($league == 'pga') {
+					$this_contest['tourney_end_date'] = get_field('contest_tournament_end_date');	
+				}
+				$this_contest['tourney_id'] = get_field('contest_tournament_id');
+								
+			}
+			else {
+				
+				if (!in_array($this_contest['date'], $contest_dates)) {
+				
+					$contest_dates[] = $this_contest['date'];
+									
+				}
+				
+			}
+			
+			$contest_data[] = $this_contest;
+
+		}
+	}
+	wp_reset_query();
+	
+		
+	
+	//If contest is finished, mark as "Finished"
+	
+	if ($league != 'pga' && $league != 'nascar') {
+		
+		if (!empty($contest_dates)) {
+			
+			$postponed_contests = array();
+				
+			foreach ($contest_dates as $contest_date) {
+					
+				$request = wp_remote_post( "https://fly.sportsdata.io/v3/$league_url/stats/JSON/GamesByDate/$contest_date", array(
+					'method' => 'GET',
+				    'headers' => array(
+				        'Ocp-Apim-Subscription-Key' => $stats_key,
+				    ),
+				) );
+				
+				$response = json_decode($request['body']);
+			
+				//print_r($response);
+				
+				//exit;
+						
+				$isComplete = true;
+						
+				foreach ($response as $game) {
+																									
+					if ($game->Status == 'Postponed' || $game->Status == 'Canceled' || $game->Status == 'Suspended') {
+						
+						$postponed_contests[] = $game->GlobalGameID;
+						
+					}
+					else if ($game->IsClosed != 1) {
+						
+						if ($league_url == 'soccer') {
+							
+							if ($game->Status != 'Final') {
+								
+								$isComplete = false;
+								break;
+								
+							}
+							
+						}
+						else {
+							
+							$isComplete = false;
+							break;
+							
+						}
+							
+					}
+									
+				}
+							
+				if ($isComplete == true) {
+					
+					//Update status for all contests on this date to 'Finished' (ready for processing)
+					foreach ($contest_data as $contest) {
+						
+						//echo $contest['date'] . ' ' . $contest_date;
+						
+						if ($contest['date'] == $contest_date) {
+						
+							update_field('contest_status', 'Finished', $contest['id']);
+							
+						}
+						
+					}
+					
+				}
+								
+			}
+		
+		}
+		
+	}
+	else {
+		
+		if ($league == 'pga') {
+		
+			if (!empty($contest_data)) {
+			
+				foreach ($contest_data as $tourney) {
+					
+					$tourney_id = $tourney['tourney_id'];
+					$contest_id = $tourney['id'];
+					
+					//echo 'Leaderboard for tourney '.$tourney_id.' requested...<br>';
+					
+					$request = wp_remote_post( "https://fly.sportsdata.io/golf/v2/json/Leaderboard/$tourney_id", array(
+						'method' => 'GET',
+					    'headers' => array(
+					        'Ocp-Apim-Subscription-Key' => $stats_key,
+					    ),
+					) );
+					
+					//echo 'Leaderboard for tourney '.$tourney_id.' received...<br>';
+						
+					if (is_wp_error($request)) {
+					
+						echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again. (Error 1)' . '</p></div>';
+					
+					}
+					else {
+						
+						$response = json_decode($request['body']);
+										
+						if ($response == '') {
+							
+							echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again. (Error 2)' . '</p></div>';
+							exit;
+							
+						}
+						
+						$is_over = $response->Tournament->IsOver;
+						
+						if ($is_over == 1) {
+												
+							update_field('contest_status', 'Finished', $contest_id);
+							
+							$mixed_projections = json_decode(get_field('contest_data', $contest_id));
+							$mixed_results = $mixed_projections;
+																	
+							$players = $response->Players;
+												
+							foreach ($players as $player) {
+								
+								$player_id = $player->PlayerID;
+								
+								$teamIndex = 0;
+								
+								foreach ($mixed_projections as $team) {
+																
+									$playerIndex = 0;
+																
+									foreach ($team as $team_player) {
+													
+										if ($playerIndex < 4) {
+											
+											if ($player_id == $team_player->PlayerID) {
+												
+												$mixed_results[$teamIndex]->$playerIndex->TotalStrokes = $player->TotalStrokes;
+												$mixed_results[$teamIndex]->$playerIndex->DoubleEagles = $player->DoubleEagles;
+												$mixed_results[$teamIndex]->$playerIndex->Eagles = $player->Eagles;
+												$mixed_results[$teamIndex]->$playerIndex->Birdies = $player->Birdies;
+												$mixed_results[$teamIndex]->$playerIndex->Pars = $player->Pars;
+												$mixed_results[$teamIndex]->$playerIndex->Bogeys = $player->Bogeys;
+												$mixed_results[$teamIndex]->$playerIndex->DoubleBogeys = $player->DoubleBogeys;
+												$mixed_results[$teamIndex]->$playerIndex->WorseThanDoubleBogey = $player->WorseThanDoubleBogey;
+												$mixed_results[$teamIndex]->$playerIndex->HoleInOnes = $player->HoleInOnes;
+												
+												$total_points = ($player->Eagles*8)+($player->Birdies*3)+($player->Pars*0.5)-($player->Bogeys*0.5)-($player->DoubleBogeys*3)-($player->WorseThanDoubleBogey*3)+($player->HoleInOnes*15);
+												
+												$mixed_results[$teamIndex]->$playerIndex->total_points = $total_points;
+												
+												//echo $player->Name . ' updated<br>';
+												
+											}
+											$playerIndex++;
+										
+										}
+										
+									}
+									
+									$teamIndex++;
+									
+								}
+																				
+							}
+							
+							//recalculate total points
+							
+							
+							$teamIndex = 0;
+							
+							foreach ($mixed_results as $team) {
+								
+								$teamTotal = 0;
+								
+								$playerCount = 0;
+								foreach ($team as $player) {
+									
+									if ($playerCount < 4) {
+										$teamTotal += $player->total_points;
+									}
+									$playerCount++;
+								}
+								
+								$mixed_results[$teamIndex]->total_points = $teamTotal;
+								$mixed_results[$teamIndex]->team_name = 'Team ' . ($teamIndex+1);
+								
+								$teamIndex++;
+								
+							}
+							
+		
+							$sort = array();
+							foreach ($mixed_results as $key => $part) {
+								$sort[$key] = $part->total_points;
+							}
+							array_multisort($sort, SORT_DESC, $mixed_results);
+							
+							
+							// Update 6 winners
+							for ($i = 0; $i < 6; $i++) {				
+								
+								update_post_meta($contest_id, 'mixed_winner_'.($i+1), $mixed_results[$i]->team_name);
+								$projected_teams[$i]['team_name'] = $mixed_results[$i]->team_name;
+								
+							}	
+							
+								
+							update_field('contest_results', json_encode($mixed_results, JSON_UNESCAPED_UNICODE), $contest_id);
+																
+						}
+						else {
+							
+							echo 'Tourney not finished';
+							
+						}
+						
+					}
+								
+				}
+				
+			}
+			else {
+				
+				echo '<div id="message" class="updated fade"><p>' . 'No contests to process.' . '</p></div>';
+				
+			}
+			
+		}
+		else if ($league == 'nascar') {
+			
+			if (!empty($contest_data)) {
+			
+				foreach ($contest_data as $tourney) {
+					
+					$tourney_id = $tourney['tourney_id'];
+					$contest_id = $tourney['id'];
+					
+					//echo 'Leaderboard for tourney '.$tourney_id.' requested...<br>';
+					
+					$request = wp_remote_post( "https://fly.sportsdata.io/nascar/v2/json/raceresult/$tourney_id", array(
+						'method' => 'GET',
+					    'headers' => array(
+					        'Ocp-Apim-Subscription-Key' => $stats_key,
+					    ),
+					) );
+					
+					//echo 'Leaderboard for tourney '.$tourney_id.' received...<br>';
+						
+					if (is_wp_error($request)) {
+					
+						echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again. (Error 5)' . '</p></div>';
+					
+					}
+					else {
+						
+						$response = json_decode($request['body']);
+										
+						if ($response == '') {
+							
+							echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again. (Error 6)' . '</p></div>';
+							exit;
+							
+						}
+						
+						/*
+						echo '<pre>';
+						print_r($response);
+						echo '</pre>';
+						
+						exit;
+						*/
+						
+						$is_over = $response->Race->IsOver;
+						
+						if ($is_over == '1') {
+												
+							update_field('contest_status', 'Finished', $contest_id);
+							
+							$mixed_projections = json_decode(get_field('contest_data', $contest_id));
+							$mixed_results = $mixed_projections;
+																	
+							$players = $response->DriverRaces;
+							
+							/*
+							echo '<pre>';
+							print_r($players);
+							echo '</pre>';
+							
+							exit;
+							*/
+												
+							foreach ($players as $player) {
+								
+								$player_id = $player->DriverID;
+								
+								$teamIndex = 0;
+								
+								foreach ($mixed_projections as $team) {
+																
+									$playerIndex = 0;
+																
+									foreach ($team as $team_player) {
+													
+										if ($playerIndex < 2) {
+											
+											if ($player_id == $team_player->DriverID) {
+																								
+												$mixed_results[$teamIndex]->$playerIndex->PositionDifferential = (int) $player->PositionDifferential;
+												$mixed_results[$teamIndex]->$playerIndex->FastestLaps = (int) $player->FastestLaps;
+												$mixed_results[$teamIndex]->$playerIndex->LapsLed = (int) $player->LapsLed;
+												$mixed_results[$teamIndex]->$playerIndex->FinalPosition = (int) $player->FinalPosition;
+												
+												$finalPos = (int) $player->FinalPosition;
+									
+												if ($finalPos == 1) {
+													$finalPosVal = 46;
+												}
+												else if ($finalPos == 2) {
+													$finalPosVal = 42;
+												}
+												else if ($finalPos == 3) {
+													$finalPosVal = 41;
+												}
+												else if ($finalPos == 4) {
+													$finalPosVal = 40;
+												}
+												else if ($finalPos == 5) {
+													$finalPosVal = 39;
+												}
+												else if ($finalPos == 6) {
+													$finalPosVal = 38;
+												}
+												else if ($finalPos == 7) {
+													$finalPosVal = 37;
+												}
+												else if ($finalPos == 8) {
+													$finalPosVal = 36;
+												}
+												else if ($finalPos == 9) {
+													$finalPosVal = 35;
+												}
+												else if ($finalPos == 10) {
+													$finalPosVal = 34;
+												}
+												else if ($finalPos == 11) {
+													$finalPosVal = 33;
+												}
+												else if ($finalPos == 12) {
+													$finalPosVal = 32;
+												}
+												else if ($finalPos == 13) {
+													$finalPosVal = 31;
+												}
+												else if ($finalPos == 14) {
+													$finalPosVal = 30;
+												}
+												else if ($finalPos == 15) {
+													$finalPosVal = 29;
+												}
+												else if ($finalPos == 16) {
+													$finalPosVal = 28;
+												}
+												else if ($finalPos == 17) {
+													$finalPosVal = 27;
+												}
+												else if ($finalPos == 18) {
+													$finalPosVal = 26;
+												}
+												else if ($finalPos == 19) {
+													$finalPosVal = 25;
+												}
+												else if ($finalPos == 20) {
+													$finalPosVal = 24;
+												}
+												else if ($finalPos == 21) {
+													$finalPosVal = 23;
+												}
+												else if ($finalPos == 22) {
+													$finalPosVal = 22;
+												}
+												else if ($finalPos == 23) {
+													$finalPosVal = 21;
+												}
+												else if ($finalPos == 24) {
+													$finalPosVal = 20;
+												}
+												else if ($finalPos == 25) {
+													$finalPosVal = 19;
+												}
+												else if ($finalPos == 26) {
+													$finalPosVal = 18;
+												}
+												else if ($finalPos == 27) {
+													$finalPosVal = 17;
+												}
+												else if ($finalPos == 28) {
+													$finalPosVal = 16;
+												}
+												else if ($finalPos == 29) {
+													$finalPosVal = 15;
+												}
+												else if ($finalPos == 30) {
+													$finalPosVal = 14;
+												}
+												else if ($finalPos == 31) {
+													$finalPosVal = 13;
+												}
+												else if ($finalPos == 32) {
+													$finalPosVal = 12;
+												}
+												else if ($finalPos == 33) {
+													$finalPosVal = 11;
+												}
+												else if ($finalPos == 34) {
+													$finalPosVal = 10;
+												}
+												else if ($finalPos == 35) {
+													$finalPosVal = 9;
+												}
+												else if ($finalPos == 36) {
+													$finalPosVal = 8;
+												}
+												else if ($finalPos == 37) {
+													$finalPosVal = 7;
+												}
+												else if ($finalPos == 38) {
+													$finalPosVal = 6;
+												}
+												else if ($finalPos == 39) {
+													$finalPosVal = 5;
+												}
+												else if ($finalPos == 40) {
+													$finalPosVal = 4;
+												}
+												else if ($finalPos == 41) {
+													$finalPosVal = 3;
+												}
+												else if ($finalPos == 42) {
+													$finalPosVal = 2;
+												}
+												else if ($finalPos == 43) {
+													$finalPosVal = 1;
+												}
+												else {
+													$finalPosVal = 0;
+												}
+												
+												$total_points = ($player->PositionDifferential)+($player->FastestLaps*0.5)+($player->LapsLed*0.25)+$finalPosVal;
+										
+												$mixed_results[$teamIndex]->$playerIndex->total_points = $total_points;
+												
+												//echo $player->Name . ' updated<br>';
+												
+											}
+											$playerIndex++;
+										
+										}
+										
+									}
+									
+									$teamIndex++;
+									
+								}
+																				
+							}
+							
+							//recalculate total points
+							
+							
+							$teamIndex = 0;
+							
+							foreach ($mixed_results as $team) {
+								
+								$teamTotal = 0;
+								
+								$playerCount = 0;
+								foreach ($team as $player) {
+									
+									if ($playerCount < 2) {
+										$teamTotal += $player->total_points;
+									}
+									$playerCount++;
+								}
+								
+								$mixed_results[$teamIndex]->total_points = $teamTotal;
+								$mixed_results[$teamIndex]->team_name = 'Team ' . ($teamIndex+1);
+								
+								$teamIndex++;
+								
+							}
+							
+		
+							$sort = array();
+							foreach ($mixed_results as $key => $part) {
+								$sort[$key] = $part->total_points;
+							}
+							array_multisort($sort, SORT_DESC, $mixed_results);
+							
+							
+							// Update 6 winners
+							for ($i = 0; $i < 6; $i++) {				
+								
+								update_post_meta($contest_id, 'mixed_winner_'.($i+1), $mixed_results[$i]->team_name);
+								$projected_teams[$i]['team_name'] = $mixed_results[$i]->team_name;
+								
+							}	
+							
+								
+							update_field('contest_results', json_encode($mixed_results, JSON_UNESCAPED_UNICODE), $contest_id);
+																
+						}
+						else {
+							
+							echo 'Tourney not finished';
+							
+						}
+						
+					}
+								
+				}
+				
+			}
+			else {
+				
+				echo '<div id="message" class="updated fade"><p>' . 'No contests to process.' . '</p></div>';
+				
+			}
+			
+		}
+				
+	}
+			
+	
+	//Retrieve all 'Finished' contests, get stats and update 6 winners
+	
+	$args = array(
+		'post_type' => 'contest',
+		'posts_per_page' => -1,
+		'meta_query' => array(
+			array(
+				'key'     => 'contest_status',
+				'value'   => 'Finished',
+			),
+		),
+	);
+	
+	$the_query = new WP_Query( $args );
+	$contest_count = 0;
+	$wager_count = 0;
+				
+	if ( $the_query->have_posts() ) {
+		
+		while ( $the_query->have_posts() ) {
+			
+			$the_query->the_post();
+			global $post;
+			
+			$contest_type = get_field('contest_type', $post->ID);
+			$contest_date = strtoupper(date('d-M-Y', get_field('contest_date', $post->ID)));
+			
+			if ($contest_type == 'Teams') {
+								
+				$request = wp_remote_post( "https://fly.sportsdata.io/v3/$league_url/stats/JSON/TeamGameStatsByDate/$contest_date", array(
+					'method' => 'GET',
+				    'headers' => array(
+				        'Ocp-Apim-Subscription-Key' => $stats_key,
+				    ),
+				) );
+				
+				$response = json_decode($request['body']);
+				
+				//	print_r($response);
+				//	exit;
+				
+				$teams_array = array();
+				
+				foreach ($response as $team) {
+					
+					$add_to_team_arr = false;
+					
+					if ($league == 'nba') {
+						
+						$points = $team->Points;
+						$rebounds = $team->Rebounds;
+						$assists = $team->Assists;
+						$steals = $team->Steals;
+						$blocks = $team->BlockedShots;
+						$turnovers = $team->Turnovers;
+						
+						$total_points = ($points + ($rebounds*1.2) + ($assists*1.5) + ($steals*3) + ($blocks*3) - $turnovers);
+						
+						$add_to_team_arr = true;
+					
+					}
+					else if ($league == 'mlb') {
+						
+						$runs = $team->Runs;
+						$singles = $team->Singles;
+						$doubles = $team->Doubles;
+						$triples = $team->Triples;
+						$homeruns = $team->HomeRuns;
+						$rbis = $team->RunsBattedIn;
+						$walks = $team->Walks;
+						$stolenbases = $team->StolenBases;
+						$caughtstealing = $team->CaughtStealing;
+						$wins = $team->Wins;
+						$inningspitched = $team->InningsPitchedDecimal;
+						$hitsagainst = $team->PitchingHits;
+						$earnedruns = $team->PitchingEarnedRuns;
+						$pitchingwalks = $team->PitchingWalks;
+						$hitbypitch = $team->PitchingHitByPitch;
+						$strikeouts = $team->PitchingStrikeouts;
+						$nohitter = $team->PitchingNoHitters;
+						$completegames = $team->PitchingCompleteGames;
+						$pitchingruns = $team->PitchingRuns;
+						
+						$total_points = ($runs*2) + ($singles*3) + ($doubles*5) + ($triples*8) + ($homeruns*10) + ($rbis*2) + ($walks*2) + ($stolenbases*5) - ($caughtstealing*2) + ($wins*4) + ($inningspitched*0.75) - ($hitsagainst*0.5) - ($earnedruns*2) - ($pitchingwalks*0.5) - ($hitbypitch*0.5) + ($strikeouts*2) + ($nohitter*25) + ($completegames*10);
+						
+						$add_to_team_arr = true;
+						
+					}
+					else if ($league == 'nhl') {
+						
+						$goals = $team->Goals;
+						$assists = $team->Assists;
+						$shots_on_goal = $team->ShotsOnGoal;
+						$blocked_shots = $team->Blocks;
+						$shorthanded_goals = $team->ShortHandedGoals;
+						$shorthanded_assists = $team->ShortHandedAssists;
+						$shootout_goals = $team->ShootoutGoals;
+						$hat_trick_bonus = $team->HatTricks;
+						$goalie_win = $team->GoaltendingWins;
+						$goalie_saves = $team->GoaltendingSaves;
+						$goalie_goals_against = $team->GoaltendingGoalsAgainst;
+						$goalie_shutout = $team->GoaltendingShutouts;
+						
+						$total_points = (($goals*3)+($assists*2)+($shots_on_goal*0.5)+($blocked_shots*0.5)+$shorthanded_goals+$shorthanded_assists+($shootout_goals*0.25)+($hat_trick_bonus*1.5)+($goalie_win*3)+($goalie_saves*0.2)-$goalie_goals_against+($goalie_shutout*2));
+						
+						$add_to_team_arr = true;
+						
+					}
+					else if ($league == 'nfl') {
+						
+					}
+					else if ($league == 'ncaab') {
+						
+					}
+					else if ($league == 'ncaaf') {
+						
+					}
+					else if ($league == 'epl') {
+						
+						//make sure we're only tallying EPL from this endpoint
+						
+						$args = array(
+							'taxonomy' => 'team',
+							'hide_empty' => false,
+							'meta_key' => 'TeamID',
+							'meta_value' => $team->GlobalTeamId,
+							'child_of' => 3013,
+						);
+						
+						$team_terms = get_terms($args);
+						
+						if ($team_terms) {
+							
+							foreach ($team_terms as $team_term) {
+								
+								//print_r($team);
+																			
+								$goals = $team->Goals;
+								if ($goals == null) {
+									$goals = 0;
+								}
+								$assists = $team->Assists;
+								if ($assists == null) {
+									$assists = 0;
+								}
+								
+								$shots_on_goal = $team->ShotsOnGoal;
+								if ($shots_on_goal == null) {
+									$shots_on_goal = 0;
+								}
+								
+								$shots = $team->Shots;
+								if ($shots == null) {
+									$shots = 0;
+								}
+								
+								$crosses = $team->Crosses;
+								$fouled = $team->Fouled;
+								$fouls = $team->Fouls;
+								$tackle = $team->TacklesWon;
+								$interceptions = $team->Interceptions;
+								$yellowcards = $team->YellowCards;
+								$redcards = $team->RedCards;
+								$penalty_miss = $team->PenaltyKickMisses;
+								$clean_sheet = $team->DefenderCleanSheets;
+								$saves = $team->GoalkeeperSaves;
+								$goals_conceded = $team->GoalkeeperGoalsAgainst;
+								$clean_sheet_goalie = $team->GoalkeeperCleanSheets;
+								$win_goalie = $team->GoalkeeperWins;
+								$penalty_save = $team->PenaltyKickSaves;
+								
+								$total_points = (($goals*10)+($assists*6)+$shots_on_goal+$shots+($crosses*0.75)+$fouled-($fouls*0.5)+$tackle+($interceptions*0.5)-($yellowcards*1.5)-($redcards*3)-($penalty_miss*5)+($clean_sheet*3)+($saves*2)-($goals_conceded*2)+($clean_sheet_goalie*5)+($win_goalie*5)+($penalty_save*3));
+								
+								//echo $team_term->name . ' - ' . $total_points . '<br>';
+								
+								$add_to_team_arr = true;
+								
+							}
+
+						}
+	
+					}
+					else if ($league == 'mls') {
+						
+						//make sure we're only tallying MLS from this endpoint
+						
+						$args = array(
+							'taxonomy' => 'team',
+							'hide_empty' => false,
+							'meta_key' => 'TeamID',
+							'meta_value' => $team->GlobalTeamId,
+							'child_of' => 2988,
+						);
+						
+						$team_terms = get_terms($args);
+						
+						if ($team_terms) {
+							
+							foreach ($team_terms as $team_term) {
+																							
+								$goals = $team->Goals;
+								if ($goals == null) {
+									$goals = 0;
+								}
+								$assists = $team->Assists;
+								if ($assists == null) {
+									$assists = 0;
+								}
+								
+								$shots_on_goal = $team->ShotsOnGoal;
+								if ($shots_on_goal == null) {
+									$shots_on_goal = 0;
+								}
+								
+								$shots = $team->Shots;
+								if ($shots == null) {
+									$shots = 0;
+								}
+								
+								$crosses = $team->Crosses;
+								$fouled = $team->Fouled;
+								$fouls = $team->Fouls;
+								$tackle = $team->TacklesWon;
+								$interceptions = $team->Interceptions;
+								$yellowcards = $team->YellowCards;
+								$redcards = $team->RedCards;
+								$penalty_miss = $team->PenaltyKickMisses;
+								$clean_sheet = $team->DefenderCleanSheets;
+								$saves = $team->GoalkeeperSaves;
+								$goals_conceded = $team->GoalkeeperGoalsAgainst;
+								$clean_sheet_goalie = $team->GoalkeeperCleanSheets;
+								$win_goalie = $team->GoalkeeperWins;
+								$penalty_save = $team->PenaltyKickSaves;
+								
+								$total_points = (($goals*10)+($assists*6)+$shots_on_goal+$shots+($crosses*0.75)+$fouled-($fouls*0.5)+$tackle+($interceptions*0.5)-($yellowcards*1.5)-($redcards*3)-($penalty_miss*5)+($clean_sheet*3)+($saves*2)-($goals_conceded*2)+($clean_sheet_goalie*5)+($win_goalie*5)+($penalty_save*3));
+								
+								//echo $team_term->name . ' - ' . $total_points . '<br>';
+								
+								$add_to_team_arr = true;
+								
+							}
+
+						}
+						
+					}
+					else if ($league == 'nascar') {
+						
+					}
+					
+					if ($add_to_team_arr == true) {
+						
+						$total_points = number_format($total_points, 2);
+					
+						$team_arr = array();
+						$team_arr['name'] = $team->Name;
+						$team_arr['total_points'] = $total_points;
+						
+						if ($league_url == 'soccer') {
+							$team_arr['TeamID'] = $team->GlobalTeamId;
+						}
+						else {
+							$team_arr['TeamID'] = $team->GlobalTeamID;
+						}
+						
+						if ($total_points == 0) {
+							
+							$team_arr['postponed'] = 1;
+							
+						}
+						else {
+							
+							$team_arr['postponed'] = 0;
+							
+						}
+						
+						$teams_array[] = $team_arr;
+						
+						//print_r($team_arr); echo '<br><br>';
+						
+					}
+					
+				}
+				
+				$sort = array();
+				foreach ($teams_array as $key => $part) {
+					$sort[$key] = $part['total_points'];
+				}
+				array_multisort($sort, SORT_DESC, $teams_array);
+				
+								
+				for ($i = 0; $i < 6; $i++) {
+				
+					$args = array(
+						'taxonomy' => 'team',
+						'hide_empty' => false,
+						'meta_key' => 'TeamID',
+						'meta_value' => $teams_array[$i]['TeamID'],
+					);
+					
+					$team_terms = get_terms($args);
+					
+					if ($team_terms) {
+						
+						foreach ($team_terms as $team_term) {
+							
+							update_post_meta($post->ID, 'team_winner_'.($i+1), $team_term->term_id);
+							$teams_array[$i]['term_id'] = $team_term->term_id;
+							
+						}
+						
+					}
+					
+				}
+				
+				update_post_meta($post->ID, 'contest_results', json_encode($teams_array, JSON_UNESCAPED_UNICODE));
+				
+				
+				//now, process all wagers for this contest
+				
+				$args = array(
+					'post_type' => 'wager',
+					'posts_per_page' => -1,
+					'meta_query' => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'wager_contest',
+							'value'   => $post->ID,
+						),
+						array(
+							'key'     => 'wager_result',
+							'value'   => 'Open',
+						),
+					),
+				);
+				
+				$the_wager = new WP_Query( $args );
+							
+				if ( $the_wager->have_posts() ) {
+					
+					while ( $the_wager->have_posts() ) {
+						
+						$the_wager->the_post();
+						
+						$wager_id = get_the_id();
+						$wager_type = strtolower(get_field('wager_type', $wager_id));
+						$wager_amount = str_replace(',','',get_field('wager_amount', $wager_id));
+						$wager_winnings = str_replace(',','',get_field('potential_winnings', $wager_id));
+								
+						$wagered_winner_1 = get_field('wager_winner_1', $wager_id);
+						$wagered_winner_2 = get_field('wager_winner_2', $wager_id);
+						$wagered_winner_3 = get_field('wager_winner_3', $wager_id);
+						$wagered_winner_4 = get_field('wager_winner_4', $wager_id);
+						$wagered_winner_5 = get_field('wager_winner_5', $wager_id);
+						$wagered_winner_6 = get_field('wager_winner_6', $wager_id);
+						
+						/*
+						$wagered_winners = array();
+						$wagered_winners[0] = '';
+						$wagered_winners[1] = $wagered_winner_1;
+						$wagered_winners[2] = $wagered_winner_2;
+						$wagered_winners[3] = $wagered_winner_3;
+						$wagered_winners[4] = $wagered_winner_4;
+						$wagered_winners[5] = $wagered_winner_5;
+						$wagered_winners[6] = $wagered_winner_6;
+						*/
+
+						$actual_winner_1 = $teams_array[0]['term_id'];
+						$actual_winner_2 = $teams_array[1]['term_id'];
+						$actual_winner_3 = $teams_array[2]['term_id'];
+						$actual_winner_4 = $teams_array[3]['term_id'];
+						$actual_winner_5 = $teams_array[4]['term_id'];
+						$actual_winner_6 = $teams_array[5]['term_id'];
+						
+						/*
+						$actual_winners = array();
+						$actual_winners[0] = '';
+						$actual_winners[1] = $actual_winner_1;
+						$actual_winners[2] = $actual_winner_2;
+						$actual_winners[3] = $actual_winner_3;
+						$actual_winners[4] = $actual_winner_4;
+						$actual_winners[5] = $actual_winner_5;
+						$actual_winners[6] = $actual_winner_6;
+						*/
+						
+						
+						// MLB POSTPONEMENTS: if postponed, push all involved wagers and return cash
+						
+						/*
+						foreach ($teams_array as $team) {
+							
+							print_r($team);
+							
+						}
+						*/						
+							
+						$winner = false;
+											
+						if ($wager_type == 'win') {
+							
+							if ($wagered_winner_1 == $actual_winner_1) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+														
+						}
+						else if ($wager_type == 'place') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'show') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2 || $wagered_winner_1 == $actual_winner_3) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 2') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 2 box') {
+							
+							if (($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2) && ($wagered_winner_2 == $actual_winner_1 || $wagered_winner_2 == $actual_winner_2)) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 3') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2 && $wagered_winner_3 == $actual_winner_3) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 3 box') {
+							
+							if (($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2 || $wagered_winner_1 == $actual_winner_3) && ($wagered_winner_2 == $actual_winner_1 || $wagered_winner_2 == $actual_winner_2 || $wagered_winner_2 == $actual_winner_3) && ($wagered_winner_3 == $actual_winner_1 || $wagered_winner_3 == $actual_winner_2 || $wagered_winner_3 == $actual_winner_3)) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 4') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2 && $wagered_winner_3 == $actual_winner_3 && $wagered_winner_4 == $actual_winner_4) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 4 box') {
+							
+							if (($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2 || $wagered_winner_1 == $actual_winner_3) && ($wagered_winner_2 == $actual_winner_1 || $wagered_winner_2 == $actual_winner_2 || $wagered_winner_2 == $actual_winner_3) && ($wagered_winner_3 == $actual_winner_1 || $wagered_winner_3 == $actual_winner_2 || $wagered_winner_3 == $actual_winner_3) && ($wagered_winner_4 == $actual_winner_1 || $wagered_winner_4 == $actual_winner_2 || $wagered_winner_4 == $actual_winner_3 || $wagered_winner_4 == $actual_winner_4)) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 6') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2 && $wagered_winner_3 == $actual_winner_3 && $wagered_winner_4 == $actual_winner_4 && $wagered_winner_5 == $actual_winner_5 && $wagered_winner_6 == $actual_winner_6) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						
+						update_field('wager_contest_winner', $actual_winner_1, $wager_id);
+						
+						//Update user balance
+						
+						$user_id = get_post_field( 'post_author', $wager_id );
+						$buying_power = floatval(get_field('account_balance', 'user_'.$user_id));	
+						$total_equity = floatval(get_field('visible_balance', 'user_'.$user_id));
+						
+						
+						if ($winner == true) {
+							
+							$total_equity = $total_equity + $wager_winnings;
+							$buying_power = $buying_power + $wager_winnings + $wager_amount;
+													
+						}
+						else {
+							
+							$total_equity = $total_equity - $wager_amount;
+							
+						}
+						
+						update_field('account_balance', $buying_power, 'user_'.$user_id);
+						update_field('visible_balance', $total_equity, 'user_'.$user_id);
+						
+						$wager_count++;
+						
+				
+					}
+					
+					$the_query->reset_postdata();
+					
+				}
+
+						
+				//final step: mark contest as 'closed'
+				update_post_meta($post->ID, 'contest_status', 'Closed');
+				
+								
+			}
+			else if ($contest_type == 'Mixed') {
+				
+												
+				//build and sort projected teams
+				
+				$contest_data = json_decode(get_field('contest_data', $post->ID));
+				
+				if ($league == 'nba') {
+				
+					$centers = $contest_data->centers;
+					$forwards = $contest_data->forwards;
+					$guards = $contest_data->guards;
+				
+					$sort = array();
+					foreach ($centers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $centers);
+					
+					$sort = array();
+					foreach ($guards as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $guards);
+					
+					$sort = array();
+					foreach ($forwards as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $forwards);
+					
+					$smallest = count($guards);
+					if (count($forwards) < $smallest) {
+						$smallest = count($forwards);
+					}
+					if (count($centers) < $smallest) {
+						$smallest = count($centers);
+					}
+					
+					//build mixed teams
+					
+					$projected_teams = array();
+					$s = 0;
+					
+					for ($t = 0; $t < $smallest; $t++) {
+						
+						$new_team = array();
+						
+						$new_team[] = $guards[$t+$s];
+						$new_team[] = $forwards[$t+$s];
+					
+						$s++;
+						
+						$new_team[] = $guards[$t+$s];
+						$new_team[] = $forwards[$t+$s];
+						
+						$new_team[] = $centers[$t];
+	
+						$projected_teams[] = $new_team;
+						
+					}
+					
+					$league_url = $league;
+				
+				}
+				else if ($league == 'mlb') {
+					
+					$catchers = $contest_data->catchers;
+					$pitchers = $contest_data->pitchers;
+					$infielders = $contest_data->infielders;
+					$outfielders = $contest_data->outfielders;
+					
+					$sort = array();
+					foreach ($catchers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $catchers);
+					
+					$sort = array();
+					foreach ($pitchers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $pitchers);
+					
+					$sort = array();
+					foreach ($infielders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $infielders);
+					
+					$sort = array();
+					foreach ($outfielders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $outfielders);
+					
+					$smallest = count($catchers);
+					if (count($pitchers) < $smallest) {
+						$smallest = count($pitchers);
+					}
+				
+					//build teams
+					
+					$projected_teams = array();
+					$s = 0;
+					
+					for ($t = 0; $t < $smallest; $t++) {
+						
+						$new_team = array();
+						
+						$new_team[] = $infielders[$t+$s];
+						$new_team[] = $outfielders[$t+$s];
+					
+						$s++;
+						
+						$new_team[] = $infielders[$t+$s];
+						$new_team[] = $outfielders[$t+$s];
+						
+						$new_team[] = $pitchers[$t];
+						$new_team[] = $catchers[$t];
+	
+						$projected_teams[] = $new_team;
+						
+					}
+					
+					$league_url = $league;
+					
+				}
+				else if ($league == 'nhl') {
+					
+					$goalies = $contest_data->goalies;
+					$wings = $contest_data->wings;
+					$defensemen = $contest_data->defensemen;
+					$centers = $contest_data->centers;
+					
+					$sort = array();
+					foreach ($goalies as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $goalies);
+					
+					$sort = array();
+					foreach ($wings as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $wings);
+					
+					$sort = array();
+					foreach ($defensemen as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $defensemen);
+					
+					$sort = array();
+					foreach ($centers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $centers);
+					
+					$smallest = count($goalies);
+					if (count($centers) < $smallest) {
+						$smallest = count($centers);
+					}
+				
+					//build teams
+					
+					$projected_teams = array();
+					$s = 0;
+					
+					for ($t = 0; $t < $smallest; $t++) {
+						
+						$new_team = array();
+						
+						$new_team[] = $wings[$t+$s];
+						$new_team[] = $defensemen[$t+$s];
+					
+						$s++;
+						
+						$new_team[] = $wings[$t+$s];
+						$new_team[] = $defensemen[$t+$s];
+						
+						$new_team[] = $centers[$t];
+						$new_team[] = $goalies[$t];
+	
+						$projected_teams[] = $new_team;
+						
+					}
+					
+					$league_url = $league;
+					
+				}
+				else if ($league == 'nfl') {
+						
+				}
+				else if ($league == 'ncaab') {
+					
+				}
+				else if ($league == 'ncaaf') {
+					
+				}
+				else if ($league == 'epl') {
+					
+					$goalkeepers = $contest_data->goalkeepers;
+					$attackers = $contest_data->attackers;
+					$defenders = $contest_data->defenders;
+					$midfielders = $contest_data->midfielders;
+					
+					$sort = array();
+					foreach ($goalkeepers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $goalkeepers);
+					
+					$sort = array();
+					foreach ($attackers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $attackers);
+					
+					$sort = array();
+					foreach ($defenders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $defenders);
+					
+					$sort = array();
+					foreach ($midfielders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $midfielders);
+					
+					$smallest = count($goalkeepers);
+					if ((count($midfielders)/2) < $smallest) {
+						$smallest = (count($midfielders)/2);
+					}
+					if ((count($defenders)/2) < $smallest) {
+						$smallest = (count($defenders)/2);
+					}
+					if ((count($attackers)/2) < $smallest) {
+						$smallest = (count($attackers)/2);
+					}
+				
+					//build teams
+					
+					$projected_teams = array();
+					$s = 0;
+					
+					for ($t = 0; $t < $smallest; $t++) {
+						
+						$new_team = array();
+						
+						$new_team[] = $attackers[$t+$s];
+						$new_team[] = $midfielders[$t+$s];
+						$new_team[] = $defenders[$t+$s];
+					
+						$s++;
+						
+						$new_team[] = $attackers[$t+$s];
+						$new_team[] = $midfielders[$t+$s];
+						$new_team[] = $defenders[$t+$s];
+						
+						$new_team[] = $goalkeepers[$t];
+	
+						$projected_teams[] = $new_team;
+						
+					}
+					
+					$league_url = 'soccer';
+					
+				}
+				else if ($league == 'mls') {
+					
+					$goalkeepers = $contest_data->goalkeepers;
+					$attackers = $contest_data->attackers;
+					$defenders = $contest_data->defenders;
+					$midfielders = $contest_data->midfielders;
+					
+					$sort = array();
+					foreach ($goalkeepers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $goalkeepers);
+					
+					$sort = array();
+					foreach ($attackers as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $attackers);
+					
+					$sort = array();
+					foreach ($defenders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $defenders);
+					
+					$sort = array();
+					foreach ($midfielders as $key => $part) {
+						$sort[$key] = $part->total_points;
+					}
+					array_multisort($sort, SORT_DESC, $midfielders);
+					
+					$smallest = count($goalkeepers);
+					if ((count($midfielders)/2) < $smallest) {
+						$smallest = (count($midfielders)/2);
+					}
+					if ((count($defenders)/2) < $smallest) {
+						$smallest = (count($defenders)/2);
+					}
+					if ((count($attackers)/2) < $smallest) {
+						$smallest = (count($attackers)/2);
+					}
+				
+					//build teams
+					
+					$projected_teams = array();
+					$s = 0;
+					
+					for ($t = 0; $t < $smallest; $t++) {
+						
+						$new_team = array();
+						
+						$new_team[] = $attackers[$t+$s];
+						$new_team[] = $midfielders[$t+$s];
+						$new_team[] = $defenders[$t+$s];
+					
+						$s++;
+						
+						$new_team[] = $attackers[$t+$s];
+						$new_team[] = $midfielders[$t+$s];
+						$new_team[] = $defenders[$t+$s];
+						
+						$new_team[] = $goalkeepers[$t];
+	
+						$projected_teams[] = $new_team;
+						
+					}
+					
+					$league_url = 'soccer';
+					
+				}
+				else if ($league == 'nascar') {
+					
+					$league_url = $league;
+					
+				}
+				
+
+				if ($league != 'pga' && $league != 'nascar') {
+				
+					$request = wp_remote_post( "https://fly.sportsdata.io/v3/$league_url/stats/JSON/PlayerGameStatsByDate/$contest_date", array(
+						'method' => 'GET',
+					    'headers' => array(
+					        'Ocp-Apim-Subscription-Key' => $stats_key,
+					    ),
+					) );
+									
+					$response = json_decode($request['body']);
+				
+							
+					//replace projected total_points with actual total_points
+					
+					$team_count = 0;
+					
+					foreach ($projected_teams as $projected_team) {
+						
+						$team_total_points = 0;
+						
+						foreach ($projected_team as $player) {
+						
+							$projected_player_id = $player->PlayerID;
+							
+							foreach ($response as $player_results) {
+								
+								if ($league_url == 'soccer') {
+									$player_results_playerid = $player_results->PlayerId;
+								}
+								else {
+									$player_results_playerid = $player_results->PlayerID;
+								}
+													
+								if ($player_results_playerid == $projected_player_id) {
+									
+									if ($league == 'nba') {
+									
+										$points = $player_results->Points;
+										$rebounds = $player_results->Rebounds;
+										$assists = $player_results->Assists;
+										$steals = $player_results->Steals;
+										$blocks = $player_results->BlockedShots;
+										$turnovers = $player_results->Turnovers;
+										
+										$total_points = ($points+($rebounds*1.2)+($assists*1.5)+($steals*3)+($blocks*3)-$turnovers);
+									
+									}
+									else if ($league == 'mlb') {
+										
+										$position = $player_results->Position;
+										$position_cat = $player_results->PositionCategory;
+										
+										if ($position == 'C') {
+											
+											$position = 'C';
+											
+										}
+										else {
+											
+											$position = $player_results->PositionCategory;
+											
+											if ($position_cat == 'DH') {
+											
+												$position = $player_results->FanDuelPosition;
+												
+												if ($position == '1B' || $position == '2B' || $position == 'SS' || $position == '3B' || $position == 'IF') {
+													
+													$position = 'IF';
+													
+												}
+												else if ($position == 'LF' || $position == 'CF' || $position == 'RF' || $position == 'OF') {
+													
+													$position = 'OF';
+													
+												}
+												
+											}
+											
+										}
+										
+										if ($position == 'IF' || $position == 'OF' || $position == 'C') {
+										
+											$runs = $player_results->Runs;
+											$singles = $player_results->Singles;
+											$doubles = $player_results->Doubles;
+											$triples = $player_results->Triples;
+											$homeruns = $player_results->HomeRuns;
+											$rbis = $player_results->RunsBattedIn;
+											$walks = $player_results->Walks;
+											$stolenbases = $player_results->StolenBases;
+											$caughtstealing = $player_results->CaughtStealing;
+										
+											$total_points = (($runs*2) + ($singles*3) + ($doubles*5) + ($triples*8) + ($homeruns*10) + ($rbis*2) + ($walks*2) + ($stolenbases*5) - ($caughtstealing*2));
+										
+										}
+										else {
+											
+											$wins = $player_results->Wins;
+											$inningspitched = $player_results->InningsPitchedDecimal;
+											$hitsagainst = $player_results->PitchingHits;
+											$earnedruns = $player_results->PitchingEarnedRuns;
+											$pitchingwalks = $player_results->PitchingWalks;
+											$hitbypitch = $player_results->PitchingHitByPitch;
+											$strikeouts = $player_results->PitchingStrikeouts;
+											$nohitter = $player_results->PitchingNoHitters;
+											$completegames = $player_results->PitchingCompleteGames;
+											$pitchingruns = $player_results->PitchingRuns;
+											
+											$total_points = (($wins*4) + ($inningspitched*0.75) - ($hitsagainst*0.5) - ($earnedruns*2) - ($pitchingwalks*0.5) - ($hitbypitch*0.5) + ($strikeouts*2) + ($nohitter*25) + ($completegames*10));
+										
+										}
+																			
+									}
+									else if ($league == 'nhl') {
+									
+										$goals = $player_results->Goals;
+										$assists = $player_results->Assists;
+										$shots_on_goal = $player_results->ShotsOnGoal;
+										$blocked_shots = $player_results->Blocks;
+										$shorthanded_goals = $player_results->ShortHandedGoals;
+										$shorthanded_assists = $player_results->ShortHandedAssists;
+										$shootout_goals = $player_results->ShootoutGoals;
+										$hat_trick_bonus = $player_results->HatTricks;
+										$goalie_win = $player_results->GoaltendingWins;
+										$goalie_saves = $player_results->GoaltendingSaves;
+										$goalie_goals_against = $player_results->GoaltendingGoalsAgainst;
+										$goalie_shutout = $player_results->GoaltendingShutouts;
+										
+										$total_points = (($goals*3)+($assists*2)+($shots_on_goal*0.5)+($blocked_shots*0.5)+$shorthanded_goals+$shorthanded_assists+($shootout_goals*0.25)+($hat_trick_bonus*1.5)+($goalie_win*3)+($goalie_saves*0.2)-$goalie_goals_against+($goalie_shutout*2));
+									
+									}
+									else if ($league == 'nfl') {
+							
+									}
+									else if ($league == 'ncaab') {
+										
+									}
+									else if ($league == 'ncaaf') {
+										
+									}
+									else if ($league == 'epl') {
+										
+										$goals = $player_results->Goals;
+										if ($goals == null) {
+											$goals = 0;
+										}
+										$assists = $player_results->Assists;
+										if ($assists == null) {
+											$assists = 0;
+										}
+										
+										$shots_on_goal = $player_results->ShotsOnGoal;
+										if ($shots_on_goal == null) {
+											$shots_on_goal = 0;
+										}
+										
+										$shots = $player_results->Shots;
+										if ($shots == null) {
+											$shots = 0;
+										}
+										
+										$crosses = $player_results->Crosses;
+										$fouled = $player_results->Fouled;
+										$fouls = $player_results->Fouls;
+										$tackle = $player_results->TacklesWon;
+										$interceptions = $player_results->Interceptions;
+										$yellowcards = $player_results->YellowCards;
+										$redcards = $player_results->RedCards;
+										$penalty_miss = $player_results->PenaltyKickMisses;
+										$clean_sheet = $player_results->DefenderCleanSheets;
+										$saves = $player_results->GoalkeeperSaves;
+										$goals_conceded = $player_results->GoalkeeperGoalsAgainst;
+										$clean_sheet_goalie = $player_results->GoalkeeperCleanSheets;
+										$win_goalie = $player_results->GoalkeeperWins;
+										$penalty_save = $player_results->PenaltyKickSaves;
+										
+										$total_points = (($goals*10)+($assists*6)+$shots_on_goal+$shots+($crosses*0.75)+$fouled-($fouls*0.5)+$tackle+($interceptions*0.5)-($yellowcards*1.5)-($redcards*3)-($penalty_miss*5)+($clean_sheet*3)+($saves*2)-($goals_conceded*2)+($clean_sheet_goalie*5)+($win_goalie*5)+($penalty_save*3));
+										
+									}
+									else if ($league == 'mls') {
+										
+										$goals = $player_results->Goals;
+										if ($goals == null) {
+											$goals = 0;
+										}
+										$assists = $player_results->Assists;
+										if ($assists == null) {
+											$assists = 0;
+										}
+										
+										$shots_on_goal = $player_results->ShotsOnGoal;
+										if ($shots_on_goal == null) {
+											$shots_on_goal = 0;
+										}
+										
+										$shots = $player_results->Shots;
+										if ($shots == null) {
+											$shots = 0;
+										}
+										
+										$crosses = $player_results->Crosses;
+										$fouled = $player_results->Fouled;
+										$fouls = $player_results->Fouls;
+										$tackle = $player_results->TacklesWon;
+										$interceptions = $player_results->Interceptions;
+										$yellowcards = $player_results->YellowCards;
+										$redcards = $player_results->RedCards;
+										$penalty_miss = $player_results->PenaltyKickMisses;
+										$clean_sheet = $player_results->DefenderCleanSheets;
+										$saves = $player_results->GoalkeeperSaves;
+										$goals_conceded = $player_results->GoalkeeperGoalsAgainst;
+										$clean_sheet_goalie = $player_results->GoalkeeperCleanSheets;
+										$win_goalie = $player_results->GoalkeeperWins;
+										$penalty_save = $player_results->PenaltyKickSaves;
+										
+										$total_points = (($goals*10)+($assists*6)+$shots_on_goal+$shots+($crosses*0.75)+$fouled-($fouls*0.5)+$tackle+($interceptions*0.5)-($yellowcards*1.5)-($redcards*3)-($penalty_miss*5)+($clean_sheet*3)+($saves*2)-($goals_conceded*2)+($clean_sheet_goalie*5)+($win_goalie*5)+($penalty_save*3));
+										
+									}
+									
+									$total_points = number_format($total_points, 2);
+									$player->total_points = $total_points;
+									$player->processed = 'true';
+									$team_total_points += $total_points;
+									
+								} 
+								
+							}
+						
+						}
+						
+						foreach ($projected_team as $player) {
+						
+							if (isset($player->processed)) {
+								$processed = $player->processed;
+							}
+							else {
+								$player->processed = 'false';
+								$player->total_points = (int) '0';
+							}
+							
+						}
+											
+						$projected_teams[$team_count]['team_name'] = 'Team ' . ($team_count+1);
+						$projected_teams[$team_count]['total_team_points'] = number_format($team_total_points, 2);
+						
+						$team_count++;
+					}
+									
+					// Sort by total_points
+					
+					$sort = array();
+					foreach ($projected_teams as $key => $part) {
+						$sort[$key] = $part['total_team_points'];
+					}
+					array_multisort($sort, SORT_DESC, $projected_teams);
+					
+					
+					
+					// Update mixed team results
+					update_field('contest_results', json_encode($projected_teams, JSON_UNESCAPED_UNICODE), $post->ID);
+	
+	
+	
+					// Update 6 winners
+					for ($i = 0; $i < 6; $i++) {				
+						
+						update_post_meta($post->ID, 'mixed_winner_'.($i+1), $projected_teams[$i]['team_name']);
+						
+					}	
+					
+				}
+				
+				//now, process all wagers for this contest
+				
+				$args = array(
+					'post_type' => 'wager',
+					'posts_per_page' => -1,
+					'meta_query' => array(
+						'relation' => 'AND',
+						array(
+							'key'     => 'wager_contest',
+							'value'   => $post->ID,
+						),
+						array(
+							'key'     => 'wager_result',
+							'value'   => 'Open',
+						),
+					),
+				);
+				
+				$the_wager = new WP_Query( $args );
+							
+				if ( $the_wager->have_posts() ) {
+					
+					while ( $the_wager->have_posts() ) {
+						
+						$the_wager->the_post();
+						
+						$wager_id = get_the_id();
+						$wager_type = strtolower(get_field('wager_type', $wager_id));
+						$wager_amount = str_replace(',','',get_field('wager_amount', $wager_id));
+						$wager_winnings = str_replace(',','',get_field('potential_winnings', $wager_id));
+								
+						$wagered_winner_1 = get_field('wager_winner_1_name', $wager_id);
+						$wagered_winner_2 = get_field('wager_winner_2_name', $wager_id);
+						$wagered_winner_3 = get_field('wager_winner_3_name', $wager_id);
+						$wagered_winner_4 = get_field('wager_winner_4_name', $wager_id);
+						$wagered_winner_5 = get_field('wager_winner_5_name', $wager_id);
+						$wagered_winner_6 = get_field('wager_winner_6_name', $wager_id);
+						
+						$actual_winner_1 = $projected_teams[0]['team_name'];
+						$actual_winner_2 = $projected_teams[1]['team_name'];
+						$actual_winner_3 = $projected_teams[2]['team_name'];
+						$actual_winner_4 = $projected_teams[3]['team_name'];
+						$actual_winner_5 = $projected_teams[4]['team_name'];
+						$actual_winner_6 = $projected_teams[5]['team_name'];
+						
+						/*
+						echo 'wagered_winner_1 = ' . $wagered_winner_1 . '<br>';
+						echo 'wagered_winner_2 = ' . $wagered_winner_2 . '<br>';
+						echo 'wagered_winner_3 = ' . $wagered_winner_3 . '<br>';
+						echo 'wagered_winner_4 = ' . $wagered_winner_4 . '<br>';
+						echo 'wagered_winner_5 = ' . $wagered_winner_5 . '<br>';
+						echo 'wagered_winner_6 = ' . $wagered_winner_6 . '<br><br>';
+						
+						echo 'actual_winner_1 = ' . $actual_winner_1 . '<br>';
+						echo 'actual_winner_2 = ' . $actual_winner_2 . '<br>';
+						echo 'actual_winner_3 = ' . $actual_winner_3 . '<br>';
+						echo 'actual_winner_4 = ' . $actual_winner_4 . '<br>';
+						echo 'actual_winner_5 = ' . $actual_winner_5 . '<br>';
+						echo 'actual_winner_6 = ' . $actual_winner_6 . '<br>';
+						*/
+						
+						$winner = false;
+											
+						if ($wager_type == 'win') {
+							
+							if ($wagered_winner_1 == $actual_winner_1) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+														
+						}
+						else if ($wager_type == 'place') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'show') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2 || $wagered_winner_1 == $actual_winner_3) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 2') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 2 box') {
+							
+							if (($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2) && ($wagered_winner_2 == $actual_winner_1 || $wagered_winner_2 == $actual_winner_2)) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 3') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2 && $wagered_winner_3 == $actual_winner_3) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 3 box') {
+							
+							if (($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2 || $wagered_winner_1 == $actual_winner_3) && ($wagered_winner_2 == $actual_winner_1 || $wagered_winner_2 == $actual_winner_2 || $wagered_winner_2 == $actual_winner_3) && ($wagered_winner_3 == $actual_winner_1 || $wagered_winner_3 == $actual_winner_2 || $wagered_winner_3 == $actual_winner_3)) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 4') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2 && $wagered_winner_3 == $actual_winner_3 && $wagered_winner_4 == $actual_winner_4) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 4 box') {
+							
+							if (($wagered_winner_1 == $actual_winner_1 || $wagered_winner_1 == $actual_winner_2 || $wagered_winner_1 == $actual_winner_3) && ($wagered_winner_2 == $actual_winner_1 || $wagered_winner_2 == $actual_winner_2 || $wagered_winner_2 == $actual_winner_3) && ($wagered_winner_3 == $actual_winner_1 || $wagered_winner_3 == $actual_winner_2 || $wagered_winner_3 == $actual_winner_3) && ($wagered_winner_4 == $actual_winner_1 || $wagered_winner_4 == $actual_winner_2 || $wagered_winner_4 == $actual_winner_3 || $wagered_winner_4 == $actual_winner_4)) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						else if ($wager_type == 'pick 6') {
+							
+							if ($wagered_winner_1 == $actual_winner_1 && $wagered_winner_2 == $actual_winner_2 && $wagered_winner_3 == $actual_winner_3 && $wagered_winner_4 == $actual_winner_4 && $wagered_winner_5 == $actual_winner_5 && $wagered_winner_6 == $actual_winner_6) {
+								
+								update_field('wager_result', 'Win', $wager_id);
+								wp_set_post_terms( $wager_id, 62, 'wager_result', false );
+								$winner = true;
+								
+							}
+							else {
+								
+								update_field('wager_result', 'Loss', $wager_id);
+								wp_set_post_terms( $wager_id, 63, 'wager_result', false );
+								
+							}
+							
+						}
+						
+						
+						//Update user balance
+						
+						$user_id = get_post_field( 'post_author', $wager_id );
+						$buying_power = floatval(get_field('account_balance', 'user_'.$user_id));	
+						$total_equity = floatval(get_field('visible_balance', 'user_'.$user_id));
+						
+						
+						if ($winner == true) {
+							
+							$total_equity = $total_equity + $wager_winnings;
+							$buying_power = $buying_power + $wager_winnings + $wager_amount;
+													
+						}
+						else {
+							
+							$total_equity = $total_equity - $wager_amount;
+							
+						}
+						
+						update_field('account_balance', $buying_power, 'user_'.$user_id);
+						update_field('visible_balance', $total_equity, 'user_'.$user_id);
+						
+						$wager_count++;
+						
+				
+					}
+					
+					$the_query->reset_postdata();
+					
+				}
+						
+				//final step: mark contest as 'closed'
+				update_post_meta($post->ID, 'contest_status', 'Closed');
+				
+				
+			}
+			
+			$contest_count++;
+
+		}
+	
+		echo '<div id="message" class="updated fade"><p>' . $contest_count . ' Contests and ' .$wager_count. ' Wagers processed.' . '</p></div>';
+		
+	}
+	else {
+	
+		echo '<div id="message" class="updated fade"><p>' . 'No Contests or Wagers processed.' . '</p></div>';
+	
+	}
+	wp_reset_query();
+	
+	
+}
+
+
+//menu page
+add_action('admin_menu', 'pariwager_processing_menu');
+
+function pariwager_processing_menu() {
+	add_menu_page('PariWager Processing', 'Processing', 'manage_options', 'pariwager-processing', 'pariwager_processing_admin_page');
+}
+
+function pariwager_processing_admin_page() {
+
+	if (!current_user_can('manage_options')) { //check permissions
+		wp_die( __('You do not have permission to view this page.')    );
+	}
+
+	echo '<div class="wrap">';
+	
+		echo '<h2>PariWager Processing</h2>';
+		
+		echo 'The current server date/time is ' . date('m-d-y H:i') . ' UTC<br><br>';
+		
+		
+		if (isset($_POST['custom_date_entry'])) {
+			if ($_POST['custom_date_entry'] != '') {
+				$date = $_POST['custom_date_entry'];
+			}
+			else {
+				$date = strtoupper(date('Y-M-d'));
+			}
+		}
+		else {
+			$date = strtoupper(date('Y-M-d'));
+		}
+		
+		if (isset($_POST['check_nba_games_button'])) {
+			process_games_and_wagers('nba');
+		}
+		if (isset($_POST['update_nba_players_button'])) {
+			update_players('nba', $date);
+		}
+		if (isset($_POST['update_nba_teams_button'])) {
+			update_nba_teams();
+		}
+		
+		
+		if (isset($_POST['check_mlb_games_button'])) {
+			process_games_and_wagers('mlb');
+		}
+		if (isset($_POST['update_mlb_players_button'])) {
+			update_players('mlb', $date);
+		}
+		if (isset($_POST['update_mlb_teams_button'])) {
+			update_mlb_teams();
+		}
+		if (isset($_POST['live_mlb_games_button'])) {
+			live_scoring('mlb');
+		}
+		
+		
+		if (isset($_POST['check_nhl_games_button'])) {
+			process_games_and_wagers('nhl');
+		}
+		if (isset($_POST['update_nhl_players_button'])) {
+			update_players('nhl', $date);
+		}
+		if (isset($_POST['update_nhl_teams_button'])) {
+			update_nhl_teams();
+		}
+		
+		
+		
+		if (isset($_POST['update_nfl_teams_button'])) {
+			update_nfl_teams();
+		}
+		
+		
+		
+		
+		if (isset($_POST['check_mls_games_button'])) {
+			process_games_and_wagers('mls');
+		}
+		if (isset($_POST['update_mls_players_button'])) {
+			update_players('mls', $date);
+		}
+		if (isset($_POST['update_mls_teams_button'])) {
+			update_mls_teams();
+		}
+		
+		
+		
+		
+		if (isset($_POST['check_epl_games_button'])) {
+			process_games_and_wagers('epl');
+		}
+		if (isset($_POST['update_epl_players_button'])) {
+			update_players('epl', $date);
+		}
+		if (isset($_POST['update_epl_teams_button'])) {
+			update_epl_teams();
+		}
+		
+		
+		
+		
+		if (isset($_POST['check_pga_games_button'])) {
+			process_games_and_wagers('golf');
+		}
+		if (isset($_POST['update_pga_players_button'])) {
+			update_players('golf', $date);
+		}
+		if (isset($_POST['live_pga_games_button'])) {
+			live_scoring('golf');
+		}
+		
+		
+		if (isset($_POST['check_nascar_games_button'])) {
+			process_games_and_wagers('nascar');
+		}
+		if (isset($_POST['update_nascar_contests_button'])){
+			update_players('nascar', $date);
+		}
+		
+		
+		if (isset($_POST['delete_projections_button'])) {
+			delete_projections();
+		}
+		
+		//phpinfo();
+		
+		$btnDate = strtoupper(date('Y-M-d'));
+		
+		echo '<h3>MLB</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_mlb_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_mlb_games_button" />';
+			submit_button('Process Finished MLB Contests and Wagers');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_mlb_players_button_clicked');
+							
+			echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_mlb_players_button" />';
+		
+			submit_button('Update MLB Players, Projections, and Contests');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_mlb_teams_button_clicked');
+			
+			echo '<input type="hidden" value="" name="update_mlb_teams_button" />';
+			submit_button('Update MLB Teams', 'primary update-mlb-teams-button');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('live_mlb_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="live_mlb_games_button" />';
+			submit_button('Update Live MLB Contests', 'primary');
+		
+		echo '</form>';
+		
+		
+		
+		echo '<h3>EPL</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_epl_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_epl_games_button" />';
+			submit_button('Process Finished EPL Contests and Wagers');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_epl_players_button_clicked');
+						
+			echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_epl_players_button" />';
+			
+			submit_button('Update EPL Players, Projections, and Contests');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_epl_teams_button_clicked');
+			
+			echo '<input type="hidden" value="" name="update_epl_teams_button" />';
+			submit_button('Update EPL Teams', 'primary update-epl-teams-button');
+		
+		echo '</form>';
+		
+		
+		
+		echo '<h3>MLS</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_mls_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_mls_games_button" />';
+			submit_button('Process Finished MLS Contests and Wagers');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_mls_players_button_clicked');
+			
+			echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_mls_players_button" />';
+						
+			submit_button('Update MLS Players, Projections, and Contests');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_mls_teams_button_clicked');
+			
+			echo '<input type="hidden" value="" name="update_mls_teams_button" />';
+			submit_button('Update MLS Teams', 'primary update-mls-teams-button');
+		
+		echo '</form>';
+		
+		
+		
+		echo '<h3>PGA</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_pga_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_pga_games_button" />';
+			submit_button('Process Finished PGA Contests and Wagers', 'primary');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_pga_players_button_clicked');
+			
+			//echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_pga_players_button" />';
+						
+			submit_button('Update PGA Players, Projections, and Contests');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('live_pga_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="live_pga_games_button" />';
+			submit_button('Update Live PGA Contests', 'primary');
+		
+		echo '</form>';
+		
+		
+		
+		
+		echo '<h3>NASCAR</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_nascar_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_nascar_games_button" />';
+			submit_button('Process Finished NASCAR Contests and Wagers');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_nascar_contests_button_clicked');
+			
+			//echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_nascar_contests_button" />';
+						
+			submit_button('Update NASCAR Projections, and Contests');
+		
+		echo '</form>';
+		
+		
+		echo '<h3>NBA (need to resolve playoff projections)</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_nba_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_nba_games_button" />';
+			submit_button('Process Finished NBA Contests and Wagers', 'primary disabled');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_nba_players_button_clicked');
+						
+			//echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_nba_players_button" />';
+			
+			submit_button('Update NBA Players, Projections, and Contests', 'primary disabled');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_nba_teams_button_clicked');
+			
+			echo '<input type="hidden" value="" name="update_nba_teams_button" />';
+			submit_button('Update NBA Teams', 'primary update-nba-teams-button disabled');
+		
+		echo '</form>';
+		
+		
+		
+		
+		
+		echo '<h3>NHL (need to resolve playoff projections)</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+		
+			wp_nonce_field('check_nhl_games_button_clicked');
+			
+			echo '<input type="hidden" value="" name="check_nhl_games_button" />';
+			submit_button('Process Finished NHL Contests and Wagers', 'primary disabled');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_nhl_players_button_clicked');
+						
+			//echo '<input type="text" name="custom_date_entry" placeholder="'.$btnDate.'" />';
+			echo '<input type="hidden" value="" name="update_nhl_players_button" />';
+			
+			submit_button('Update NHL Players, Projections, and Contests', 'primary disabled');
+		
+		echo '</form>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_nhl_teams_button_clicked');
+			
+			echo '<input type="hidden" value="" name="update_nhl_teams_button" />';
+			submit_button('Update NHL Teams', 'primary update-nhl-teams-button disabled');
+		
+		echo '</form>';
+		
+		
+		
+		echo '<h3>NFL</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('update_nfl_teams_button_clicked');
+			
+			echo '<input type="hidden" value="" name="update_nfl_teams_button" />';
+			submit_button('Update NFL Teams', 'primary update-nfl-teams-button');
+		
+		echo '</form>';
+		
+		
+		
+		echo '<h3>NCAA-F</h3>';
+		
+		
+		
+		echo '<h3>NCAA-B</h3>';
+		
+		
+		echo '<h3>General</h3>';
+		
+		echo '<form action="options-general.php?page=pariwager-processing" method="post">';
+			
+			wp_nonce_field('delete_projections_button_clicked');
+			
+			echo '<input type="hidden" value="" name="delete_projections_button" />';
+			submit_button('Delete All Projections', 'primary delete-projections disabled');
+		
+		echo '</form>';
+	
+		
+		?>
+		
+		<script>
+		jQuery(document).ready(function($){
+	
+			$('.toplevel_page_pariwager-processing input.disabled').attr('disabled','disabled');
+						
+			$('input.button-primary').on('click',function() {
+				$('input.button-primary').addClass('disabled');
+			});
+			
+		});
+		</script>
+	
+		<?php
+		
+	echo '</div>'; //close wrap
+
+}
+
+
+
+function update_players($league, $date) {
+	
+	$teams_array = array();
+	$teams_data = array();
+	
+	$contest_players = array();
+	
+	$mixed_data = array();
+		
+	if ($league == 'nba') {
+		
+		$mixed_guards = array();
+		$mixed_forwards = array();
+		$mixed_centers = array();
+		
+		$parent_team = 41;
+		$projection_key = '68dda52b22114359bd3e08d6957273e4';
+		$tax_league = 2;
+		
+	}
+	else if ($league == 'mlb') {
+		
+		$mixed_pitchers = array();
+		$mixed_catchers = array();
+		$mixed_infielders = array();
+		$mixed_outfielders = array();
+		
+		$parent_team = 1969;
+		$projection_key = '2100a540c8344b4d94399e64e604ccb3';
+		$tax_league = 4;
+		
+	}
+	else if ($league == 'nhl') {
+		
+		$mixed_wings = array();
+		$mixed_defensemen = array();
+		$mixed_goalies = array();
+		$mixed_centers = array();
+		
+		$parent_team = 42;
+		$projection_key = '610a6edbb1b547d58178da1b44c2d274';
+		$tax_league = 3;
+		
+	}
+	else if ($league == 'nfl') {
+						
+	}
+	else if ($league == 'ncaab') {
+		
+	}
+	else if ($league == 'ncaaf') {
+		
+	}
+	else if ($league == 'epl') {
+		
+		$mixed_attackers = array();
+		$mixed_midfielders = array();
+		$mixed_defenders = array();
+		$mixed_goalkeepers = array();
+		
+		$parent_team = 3013;
+		$projection_key = 'd94de8a990564486b5efa940ef06cde3';
+		$tax_league = 5;
+		
+	}
+	else if ($league == 'mls') {
+		
+		$mixed_attackers = array();
+		$mixed_midfielders = array();
+		$mixed_defenders = array();
+		$mixed_goalkeepers = array();
+		
+		$parent_team = 2988;
+		$projection_key = 'd94de8a990564486b5efa940ef06cde3';
+		$tax_league = 2987;
+		
+	}
+	else if ($league == 'golf') {
+		
+		$mixed_golfers = array();
+		
+		$league_url = 'golf';
+		$projection_key = '44691bd017be4bdabcd8af9da127ae38';
+		$tax_league = 7;
+		
+	}
+	else if ($league == 'nascar') {
+		
+		$league_url = 'nascar';
+		
+		$projection_key = '63012620571942b08ed8028f75e32fd3';
+		$tax_league = 8;
+		
+	}
+	
+	//build teams array to accumulate points by team/position
+
+	if ($league != 'golf' && $league != 'nascar') {
+
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'child_of' => $parent_team,
+		);
+		
+		$all_teams = get_terms($args);
+		
+		$count = 0;
+		foreach ($all_teams as $team) {
+			
+			$team_arr = array();
+			$team_id = get_term_meta( $team->term_id, 'TeamID', true );
+			
+			$team_arr['term_id'] = $team->term_id;
+			$team_arr['team_name'] = $team->name;
+			$team_arr['TeamID'] = $team_id;
+			$team->TeamID = $team_id;
+			
+			if ($league == 'nba') {
+				
+				$team->guards = 0;
+				$team->forwards = 0;
+				$team->centers = 0;
+				
+				$league_url = $league;
+				
+			}
+			else if ($league == 'mlb') {
+				
+				$team->pitchers = 0;
+				$team->catchers = 0;
+				$team->infielders = 0;
+				$team->outfielders = 0;
+				
+				$league_url = $league;
+				
+			}
+			else if ($league == 'nhl') {
+				
+				$team->goalies = 0;
+				$team->centers = 0;
+				$team->defensemen = 0;
+				$team->wings = 0;
+				
+				$league_url = $league;
+				
+			}
+			else if ($league == 'nfl') {
+							
+			}
+			else if ($league == 'ncaab') {
+				
+			}
+			else if ($league == 'ncaaf') {
+				
+			}
+			else if ($league == 'epl') {
+				
+				$team->attackers = 0;
+				$team->midfielders = 0;
+				$team->defenders = 0;
+				$team->goalkeepers = 0;
+				
+				$league_url = 'soccer';
+				
+			}
+			else if ($league == 'mls') {
+				
+				$team->attackers = 0;
+				$team->midfielders = 0;
+				$team->defenders = 0;
+				$team->goalkeepers = 0;
+				
+				$league_url = 'soccer';
+				
+			}
+			
+			$teams_array[] = $team_arr;
+			
+			$count++;
+		}
+	
+	}
+
+	if ($league_url == 'soccer') {
+		
+		$request = wp_remote_post( "https://fly.sportsdata.io/v3/soccer/projections/json/PlayerGameProjectionStatsByCompetition/$league/$date", array(
+			'method' => 'GET',
+		    'headers' => array(
+		        'Ocp-Apim-Subscription-Key' => $projection_key,
+		    ),
+		) );
+		
+	}
+	else if ($league_url == 'nascar') {
+		
+		$count = 0;
+		
+		$request = wp_remote_post( "https://fly.sportsdata.io/nascar/v2/json/races/2019", array(
+			'method' => 'GET',
+		    'headers' => array(
+		        'Ocp-Apim-Subscription-Key' => $projection_key,
+		    ),
+		) );
+		
+		if (is_wp_error($request)) {
+			
+			echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again.' . '</p></div>';
+			exit;
+		
+		}
+		else {
+			
+			$response = json_decode($request['body']);
+			
+			//echo '<pre>';
+			//print_r($response);
+			//echo '</pre>';
+						
+			$contest_data = array();
+			
+			foreach ($response as $race) {
+				
+				if ($race->SeriesName == 'Monster Energy NASCAR Cup') {
+					
+					$race_id = $race->RaceID;
+					$race_datetime = $race->DateTime;
+					$race_name = $race->Name;
+					$race_track = $race->Track;
+					$race_over = $race->IsOver;
+					
+					$current_date = date("Y-m-d");
+					$next_week = date("Y-m-d",strtotime("next week"));
+					
+					if ($race_datetime > $current_date && $race_datetime < $next_week) {
+					
+						/*
+						
+						echo '<pre>';
+						print_r($race);
+						echo '</pre>';
+						
+						exit;
+						
+						echo $race_name . '<br>';
+						
+						*/
+						
+						//get projections
+											
+						$projections = wp_remote_post( "https://fly.sportsdata.io/nascar/v2/json/DriverRaceProjections/$race_id", array(
+							'method' => 'GET',
+						    'headers' => array(
+						        'Ocp-Apim-Subscription-Key' => $projection_key,
+						    ),
+						) );
+						
+						if (is_wp_error($projections)) {
+				
+							echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again. (Error 4)' . '</p></div>';
+							exit;
+						
+						}
+						else {
+							
+							if ($race_over != '1') {
+							
+								$projection_response = json_decode($projections['body']);
+								
+								/*
+								echo '<pre>';
+								print_r($projection_response);
+								echo '</pre>';
+								
+								exit;
+								*/
+								
+								$contest_data = array();
+								
+								foreach ($projection_response as $driver) {
+								
+									$player = array();
+									
+									$player['Name'] = $driver->Name;
+									$player['DriverID'] = $driver->DriverID;
+									$player['PositionDifferential'] = (int) $driver->PositionDifferential;
+									$player['FastestLaps'] = (int) $driver->FastestLaps;
+									$player['LapsLed'] = (int) $driver->LapsLed;
+									$player['FinalPosition'] = (int) $driver->FinalPosition;
+								
+									$finalPos = $driver->FinalPosition;
+									
+									if ($finalPos == 1) {
+										$finalPosVal = 46;
+									}
+									else if ($finalPos == 2) {
+										$finalPosVal = 42;
+									}
+									else if ($finalPos == 3) {
+										$finalPosVal = 41;
+									}
+									else if ($finalPos == 4) {
+										$finalPosVal = 40;
+									}
+									else if ($finalPos == 5) {
+										$finalPosVal = 39;
+									}
+									else if ($finalPos == 6) {
+										$finalPosVal = 38;
+									}
+									else if ($finalPos == 7) {
+										$finalPosVal = 37;
+									}
+									else if ($finalPos == 8) {
+										$finalPosVal = 36;
+									}
+									else if ($finalPos == 9) {
+										$finalPosVal = 35;
+									}
+									else if ($finalPos == 10) {
+										$finalPosVal = 34;
+									}
+									else if ($finalPos == 11) {
+										$finalPosVal = 33;
+									}
+									else if ($finalPos == 12) {
+										$finalPosVal = 32;
+									}
+									else if ($finalPos == 13) {
+										$finalPosVal = 31;
+									}
+									else if ($finalPos == 14) {
+										$finalPosVal = 30;
+									}
+									else if ($finalPos == 15) {
+										$finalPosVal = 29;
+									}
+									else if ($finalPos == 16) {
+										$finalPosVal = 28;
+									}
+									else if ($finalPos == 17) {
+										$finalPosVal = 27;
+									}
+									else if ($finalPos == 18) {
+										$finalPosVal = 26;
+									}
+									else if ($finalPos == 19) {
+										$finalPosVal = 25;
+									}
+									else if ($finalPos == 20) {
+										$finalPosVal = 24;
+									}
+									else if ($finalPos == 21) {
+										$finalPosVal = 23;
+									}
+									else if ($finalPos == 22) {
+										$finalPosVal = 22;
+									}
+									else if ($finalPos == 23) {
+										$finalPosVal = 21;
+									}
+									else if ($finalPos == 24) {
+										$finalPosVal = 20;
+									}
+									else if ($finalPos == 25) {
+										$finalPosVal = 19;
+									}
+									else if ($finalPos == 26) {
+										$finalPosVal = 18;
+									}
+									else if ($finalPos == 27) {
+										$finalPosVal = 17;
+									}
+									else if ($finalPos == 28) {
+										$finalPosVal = 16;
+									}
+									else if ($finalPos == 29) {
+										$finalPosVal = 15;
+									}
+									else if ($finalPos == 30) {
+										$finalPosVal = 14;
+									}
+									else if ($finalPos == 31) {
+										$finalPosVal = 13;
+									}
+									else if ($finalPos == 32) {
+										$finalPosVal = 12;
+									}
+									else if ($finalPos == 33) {
+										$finalPosVal = 11;
+									}
+									else if ($finalPos == 34) {
+										$finalPosVal = 10;
+									}
+									else if ($finalPos == 35) {
+										$finalPosVal = 9;
+									}
+									else if ($finalPos == 36) {
+										$finalPosVal = 8;
+									}
+									else if ($finalPos == 37) {
+										$finalPosVal = 7;
+									}
+									else if ($finalPos == 38) {
+										$finalPosVal = 6;
+									}
+									else if ($finalPos == 39) {
+										$finalPosVal = 5;
+									}
+									else if ($finalPos == 40) {
+										$finalPosVal = 4;
+									}
+									else if ($finalPos == 41) {
+										$finalPosVal = 3;
+									}
+									else if ($finalPos == 42) {
+										$finalPosVal = 2;
+									}
+									else if ($finalPos == 43) {
+										$finalPosVal = 1;
+									}
+									else {
+										$finalPosVal = 0;
+									}
+									
+									$total_points = ($driver->PositionDifferential)+($driver->FastestLaps*0.5)+($driver->LapsLed*0.25)+$finalPosVal;
+									
+									$player['total_points'] = number_format($total_points,2);
+									
+									$contest_data[] = $player;
+									
+								}
+								
+								//sort by total points
+				
+								$sort = array();
+								foreach ($contest_data as $key => $part) {
+									$sort[$key] = $part['total_points'];
+								}
+								array_multisort($sort, SORT_DESC, $contest_data);
+								
+								
+								//group by teams of 2
+								
+								$total = floor(count($contest_data));
+														
+								$final_projection = array();
+								$j = 0; $k = 0;
+								
+								for ($i = 0; $i < $total; $i++) {
+									
+									if ($j > 1) {
+										$j = 0;
+										$final_projection[] = $team[$k];
+										$final_projection[$k]['total_points'] = $final_projection[$k][0]['total_points']+$final_projection[$k][1]['total_points'];
+										$k++;
+									}
+									
+									$team[$k][] = $contest_data[$i];
+									$j++;
+								}
+								
+														
+								//create contest for upcoming race
+								
+								$date = strtoupper(date('m-d-Y g:i a', strtotime($race_datetime)));
+								$date_unix = strtoupper(date('U', strtotime($race_datetime)));
+								$date_notime = date('m-d-Y', strtotime($race_datetime));
+								$date_notime_day = date('l F jS', strtotime($race_datetime));
+								$date_sort = strtoupper(date('Y-m-d H:i:s', strtotime($race_datetime)));
+																
+								$mixed_contest = array(
+									'post_status' => 'publish',
+									'post_title' => 'NASCAR: Mixed ' . $date_notime,
+									'post_type' => 'contest',
+									'meta_input' => array (
+										'contest_type' => 'Mixed',
+										'contest_date' => $date_unix,
+										'contest_date_sort' => $date_sort,
+										'contest_status' => 'Open',
+										'contest_data' => json_encode($final_projection, JSON_UNESCAPED_UNICODE),
+										'contest_title_without_type' => 'NASCAR: ' . $date_notime_day,
+										'contest_tournament_name' => $race_name,
+										'contest_tournament_id' => $race_id,
+										'contest_tournament_location' => $race_track,
+									),
+									'tax_input' => array (
+										'league' => 8,
+									),
+								);
+								
+								//print_r($mixed_contest);
+								
+								$post_exists = post_exists('NASCAR: Mixed ' . $date_notime);
+										
+								if ($post_exists == 0) {
+									wp_insert_post( $mixed_contest );
+								}
+								else {
+									$mixed_contest['ID'] = $post_exists;
+									wp_update_post( $mixed_contest );
+								}
+								
+								$count++;
+								
+								echo '<div id="message" class="updated fade"><p>' .$count. ' contests updated.' . '</p></div>';
+								
+								
+							}
+							
+						}
+						
+					}
+					
+				}
+								
+			}
+						
+			exit;
+			
+		}
+		
+	}
+	else {
+		
+		if ($league_url == 'golf') {
+			
+			$count = 0;
+			
+			//get list of tournaments
+			
+			$request = wp_remote_post( "https://fly.sportsdata.io/golf/v2/json/Tournaments", array(
+				'method' => 'GET',
+			    'headers' => array(
+			        'Ocp-Apim-Subscription-Key' => $projection_key,
+			    ),
+			) );
+			
+			if (is_wp_error($request)) {
+			
+				echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again.' . '</p></div>';
+				exit;
+			
+			}
+			else {
+				
+				$response = json_decode($request['body']);
+				$next_thursday = date('Y-m-d', strtotime('next thursday'));
+				$contest_data = array();
+				
+				foreach ($response as $tournament) {
+					
+					$tourney_start = date('Y-m-d', strtotime($tournament->StartDate));
+					$tourney_end = date('F j, Y', strtotime($tournament->EndDate));
+					$tourney_name = $tournament->Name;
+					$tourney_id = $tournament->TournamentID;
+					$tourney_location = $tournament->Location;
+					
+					if ($tourney_start == $next_thursday) {
+						
+						//get projections
+												
+						$request = wp_remote_post( "https://fly.sportsdata.io/golf/v2/json/PlayerTournamentProjectionStats/$tourney_id", array(
+							'method' => 'GET',
+						    'headers' => array(
+						        'Ocp-Apim-Subscription-Key' => $projection_key,
+						    ),
+						) );
+						
+						$tourney_projections = json_decode($request['body']);
+						
+						if (empty($tourney_projections)) {
+							
+							echo '<div id="message" class="updated fade"><p>' . 'No PGA projections ready.' . '</p></div>';
+							exit;
+							
+						}
+						else {
+							
+							foreach ($tourney_projections as $player_projection) {
+								
+								$player = array();
+								$player['PlayerTournamentID'] = $player_projection->PlayerTournamentID;
+								$player['PlayerID'] = $player_projection->PlayerID;
+								$player['Name'] = $player_projection->Name;
+								$player['TotalStrokes'] = $player_projection->TotalStrokes;
+								$player['DoubleEagles'] = $player_projection->DoubleEagles;
+								$player['Eagles'] = $player_projection->Eagles;
+								$player['Birdies'] = $player_projection->Birdies;
+								$player['Pars'] = $player_projection->Pars;
+								$player['Bogeys'] = $player_projection->Bogeys;
+								$player['DoubleBogeys'] = $player_projection->DoubleBogeys;
+								$player['WorseThanDoubleBogey'] = $player_projection->WorseThanDoubleBogey;
+								$player['HoleInOnes'] = $player_projection->HoleInOnes;
+								
+								$total_points = ($player_projection->Eagles*8)+($player_projection->Birdies*3)+($player_projection->Pars*0.5)-($player_projection->Bogeys*0.5)-($player_projection->DoubleBogeys*3)-($player_projection->WorseThanDoubleBogey*3)+($player_projection->HoleInOnes*15);
+								
+								$player['total_points'] = number_format($total_points,2);
+								
+								$contest_data[] = $player;
+								
+							}
+							
+						}
+						
+						//sort by total points
+						
+						$sort = array();
+						foreach ($contest_data as $key => $part) {
+							$sort[$key] = $part['total_points'];
+						}
+						array_multisort($sort, SORT_DESC, $contest_data);
+						
+						
+						//group by teams of 4
+						
+						$total = floor(count($contest_data));
+												
+						$final_projection = array();
+						$j = 0; $k = 0;
+						
+						for ($i = 0; $i < $total; $i++) {
+							
+							if ($j > 3) {
+								$j = 0;
+								$final_projection[] = $team[$k];
+								$final_projection[$k]['total_points'] = $final_projection[$k][0]['total_points']+$final_projection[$k][1]['total_points']+$final_projection[$k][2]['total_points']+$final_projection[$k][3]['total_points'];
+								$k++;
+							}
+							
+							$team[$k][] = $contest_data[$i];
+							$j++;
+						}
+						
+												
+						//create contest for next upcoming tourney
+						
+						$date = strtoupper(date('m-d-Y g:i a', strtotime($tournament->StartDate)));
+						$date_unix = strtoupper(date('U', strtotime($tournament->StartDate)));
+						$date_notime = date('m-d-Y', strtotime($tournament->StartDate));
+						$date_notime_day = date('l F jS', strtotime($tournament->StartDate));
+						$date_sort = strtoupper(date('Y-m-d H:i:s', strtotime($tournament->StartDate)));
+						
+						$mixed_contest = array(
+							'post_status' => 'publish',
+							'post_title' => 'PGA: Mixed ' . $date_notime,
+							'post_type' => 'contest',
+							'meta_input' => array (
+								'contest_type' => 'Mixed',
+								'contest_date' => $date_unix,
+								'contest_date_sort' => $date_sort,
+								'contest_status' => 'Open',
+								'contest_data' => json_encode($final_projection, JSON_UNESCAPED_UNICODE),
+								'contest_title_without_type' => 'PGA: ' . $date_notime_day,
+								'contest_tournament_name' => $tourney_name,
+								'contest_tournament_end_date' => $tourney_end,
+								'contest_tournament_id' => $tourney_id,
+								'contest_tournament_location' => $tourney_location,
+							),
+							'tax_input' => array (
+								'league' => 7,
+							),
+						);
+						
+						//print_r($mixed_contest);
+						
+						$post_exists = post_exists('PGA: Mixed ' . $date_notime);
+								
+						if ($post_exists == 0) {
+							wp_insert_post( $mixed_contest );
+						}
+						else {
+							$mixed_contest['ID'] = $post_exists;
+							wp_update_post( $mixed_contest );
+						}
+						
+						$count++;
+						
+						echo '<div id="message" class="updated fade"><p>' .$count. ' contests updated.' . '</p></div>';
+						
+					}
+					
+				}
+							
+				exit;
+				
+			}
+		
+		}
+		else {
+			
+			$request = wp_remote_post( "https://fly.sportsdata.io/v3/$league_url/projections/JSON/PlayerGameProjectionStatsByDate/$date", array(
+				'method' => 'GET',
+			    'headers' => array(
+			        'Ocp-Apim-Subscription-Key' => $projection_key,
+			    ),
+			) );
+			
+		}
+
+	}
+	
+	if (is_wp_error($request)) {
+	
+		echo '<div id="message" class="updated fade"><p>' . 'There was an error. Please try again.' . '</p></div>';
+		exit;
+	
+	}
+	else {
+		
+		$response = json_decode($request['body']);
+		
+	}
+		
+	$count = 0;
+	$actual_count = 0;
+	
+	//print_r($response);
+		
+	foreach ($response as $player) {
+		
+		$date = date('Y-m-d', strtotime($player->DateTime)); //PT
+		
+		//if ($count < 20) {
+			
+			if ($league == 'nba') {
+			
+				$points = $player->Points;
+				$rebounds = $player->Rebounds;
+				$assists = $player->Assists;
+				$steals = $player->Steals;
+				$blocks = $player->BlockedShots;
+				$turnovers = $player->Turnovers;
+				
+				$opponent = $player->GlobalOpponentID;
+				$opponent_abbrev = $player->Opponent;
+				$home_away = strtolower($player->HomeOrAway);
+				
+				$total_pts = $points+$rebounds+$assists+$steals+$blocks+$turnovers;
+			
+			}
+			else if ($league == 'mlb') {
+				
+				$runs = $player->Runs;
+				$singles = $player->Singles;
+				$doubles = $player->Doubles;
+				$triples = $player->Triples;
+				$homeruns = $player->HomeRuns;
+				$rbis = $player->RunsBattedIn;
+				$walks = $player->Walks;
+				$stolenbases = $player->StolenBases;
+				$caughtstealing = $player->CaughtStealing;
+				
+				$wins = $player->Wins;
+				$inningspitched = $player->InningsPitchedDecimal;
+				$hitsagainst = $player->PitchingHits;
+				$earnedruns = $player->PitchingEarnedRuns;
+				$pitchingwalks = $player->PitchingWalks;
+				$hitbypitch = $player->PitchingHitByPitch;
+				$strikeouts = $player->PitchingStrikeouts;
+				$nohitter = $player->PitchingNoHitters;
+				$completegames = $player->PitchingCompleteGames;
+				$pitchingruns = $player->PitchingRuns;
+				
+				$opponent = $player->GlobalOpponentID;
+				$opponent_abbrev = $player->Opponent;
+				$home_away = strtolower($player->HomeOrAway);
+							
+				$total_pts = $runs + $singles + $doubles + $triples + $homeruns + $rbis + $walks + $stolenbases + $caughtstealing + $wins + $inningspitched + $hitsagainst + $earnedruns + $pitchingwalks + $hitbypitch + $strikeouts + $nohitter + $completegames + $pitchingruns;
+				
+			}
+			else if ($league == 'nhl') {
+			
+				$goals = $player->Goals;
+				$assists = $player->Assists;
+				$shots_on_goal = $player->ShotsOnGoal;
+				$blocked_shots = $player->Blocks;
+				$shorthanded_goals = $player->ShortHandedGoals;
+				$shorthanded_assists = $player->ShortHandedAssists;
+				$shootout_goals = $player->ShootoutGoals;
+				$hat_trick_bonus = $player->HatTricks;
+				$goalie_win = $player->GoaltendingWins;
+				$goalie_saves = $player->GoaltendingSaves;
+				$goalie_goals_against = $player->GoaltendingGoalsAgainst;
+				$goalie_shutout = $player->GoaltendingShutouts;
+				
+				$opponent = $player->GlobalOpponentID;
+				$opponent_abbrev = $player->Opponent;
+				$home_away = strtolower($player->HomeOrAway);
+				
+				$total_pts = $goals+$assists+$shots_on_goal+$blocked_shots+$shorthanded_goals+$shorthanded_assists+$shootout_goals+$hat_trick_bonus+$goalie_win+$goalie_saves+$goalie_goals_against+$goalie_shutout;
+				
+			}
+			else if ($league == 'nfl') {
+						
+			}
+			else if ($league == 'ncaab') {
+				
+			}
+			else if ($league == 'ncaaf') {
+				
+			}
+			else if ($league == 'epl') {
+				
+				$goals = $player->Goals;
+				if ($goals == null) {
+					$goals = 0;
+				}
+				$assists = $player->Assists;
+				if ($assists == null) {
+					$assists = 0;
+				}
+				
+				$shots_on_goal = $player->ShotsOnGoal;
+				if ($shots_on_goal == null) {
+					$shots_on_goal = 0;
+				}
+				
+				$shots = $player->Shots;
+				if ($shots == null) {
+					$shots = 0;
+				}
+				
+				$crosses = $player->Crosses;
+				$fouled = $player->Fouled;
+				$fouls = $player->Fouls;
+				$tackle = $player->TacklesWon;
+				$interceptions = $player->Interceptions;
+				$yellowcards = $player->YellowCards;
+				$redcards = $player->RedCards;
+				$penalty_miss = $player->PenaltyKickMisses;
+				$clean_sheet = $player->DefenderCleanSheets;
+				$saves = $player->GoalkeeperSaves;
+				$goals_conceded = $player->GoalkeeperGoalsAgainst;
+				$clean_sheet_goalie = $player->GoalkeeperCleanSheets;
+				$win_goalie = $player->GoalkeeperWins;
+				$penalty_save = $player->PenaltyKickSaves;
+								
+				$opponent = $player->GlobalOpponentId;
+				$opponent_abbrev = $player->Opponent;
+				$home_away = strtolower($player->HomeOrAway);
+				
+				$total_pts = $goals+$assists+$shots_on_goal+$shots+$crosses+$fouled+$fouls+$tackle+$interceptions+$yellowcards+$redcards+$penalty_miss+$clean_sheet+$saves+$goals_conceded+$clean_sheet_goalie+$win_goalie+$penalty_save;
+				
+			}
+			else if ($league == 'mls') {
+				
+				$goals = $player->Goals;
+				if ($goals == null) {
+					$goals = 0;
+				}
+				$assists = $player->Assists;
+				if ($assists == null) {
+					$assists = 0;
+				}
+				
+				$shots_on_goal = $player->ShotsOnGoal;
+				if ($shots_on_goal == null) {
+					$shots_on_goal = 0;
+				}
+				
+				$shots = $player->Shots;
+				if ($shots == null) {
+					$shots = 0;
+				}
+				
+				$crosses = $player->Crosses;
+				$fouled = $player->Fouled;
+				$fouls = $player->Fouls;
+				$tackle = $player->TacklesWon;
+				$interceptions = $player->Interceptions;
+				$yellowcards = $player->YellowCards;
+				$redcards = $player->RedCards;
+				$penalty_miss = $player->PenaltyKickMisses;
+				$clean_sheet = $player->DefenderCleanSheets;
+				$saves = $player->GoalkeeperSaves;
+				$goals_conceded = $player->GoalkeeperGoalsAgainst;
+				$clean_sheet_goalie = $player->GoalkeeperCleanSheets;
+				$win_goalie = $player->GoalkeeperWins;
+				$penalty_save = $player->PenaltyKickSaves;
+								
+				$opponent = $player->GlobalOpponentId;
+				$opponent_abbrev = $player->Opponent;
+				$home_away = strtolower($player->HomeOrAway);
+				
+				$total_pts = $goals+$assists+$shots_on_goal+$shots+$crosses+$fouled+$fouls+$tackle+$interceptions+$yellowcards+$redcards+$penalty_miss+$clean_sheet+$saves+$goals_conceded+$clean_sheet_goalie+$win_goalie+$penalty_save;
+				
+			}
+			else if ($league == 'pga') {
+				
+			}
+			else if ($league == 'nascar') {
+				
+			}
+			
+			if ($total_pts > 0) { //no need to create projections for players with 0 projected points
+			
+				if ($league_url == 'soccer') {
+					
+					$args = array(
+						'taxonomy' => 'player',
+						'hide_empty' => false,
+						'meta_key' => 'PlayerID',
+						'meta_value' => $player->PlayerId,
+					);
+					
+				}
+				else {
+					
+					$args = array(
+						'taxonomy' => 'player',
+						'hide_empty' => false,
+						'meta_key' => 'PlayerID',
+						'meta_value' => $player->PlayerID,
+					);
+					
+				}
+
+				$player_term = get_terms($args);
+				
+				if (empty($player_term)) {
+					
+					$new_player = wp_insert_term( $player->Name, 'player' );
+					
+					//if player name exists, append league
+					if (is_wp_error($new_player)){
+						$new_player = wp_insert_term( $player->Name . '-' . $league, 'player' );
+					}
+					
+					if ($league_url == 'soccer') {
+						
+						update_term_meta($new_player['term_id'], 'PlayerID', $player->PlayerId);
+						
+						$player_term = get_terms(
+							array(
+								'taxonomy' => 'player',
+								'hide_empty' => false,
+								'meta_key' => 'PlayerID',
+								'meta_value' => $player->PlayerId,
+							)
+						); 
+						
+					}
+					else {
+					
+						update_term_meta($new_player['term_id'], 'PlayerID', $player->PlayerID);
+						
+						$player_term = get_terms(
+							array(
+								'taxonomy' => 'player',
+								'hide_empty' => false,
+								'meta_key' => 'PlayerID',
+								'meta_value' => $player->PlayerID,
+							)
+						); 
+					
+					}
+
+				}
+				
+				foreach ($player_term as $existing_player) {
+						
+					if ($league_url == 'soccer') {				
+						
+						$args = array(
+							'taxonomy' => 'team',
+							'hide_empty' => false,
+							'meta_key' => 'TeamID',
+							'meta_value' => $player->GlobalTeamId,
+						);
+						
+					}
+					else {
+						
+						$args = array(
+							'taxonomy' => 'team',
+							'hide_empty' => false,
+							'meta_key' => 'TeamID',
+							'meta_value' => $player->GlobalTeamID,
+						);
+						
+					}
+					
+					$team_term = get_terms($args);
+					
+					if ($team_term) {
+						
+						foreach ($team_term as $team) {
+							
+							//create / update projection
+
+							if ($league == 'nba') {
+							
+								$total_points = ($points + ($rebounds*1.2) + ($assists*1.5) + ($steals*3) + ($blocks*3) - $turnovers);
+								//$total_points = $points + $rebounds + $assists + $steals + $blocks - $turnovers;
+								
+								$total_points = number_format($total_points,2);
+
+								
+								//add player to contest array
+								if ($total_points > 0) {
+									$contest_players[] = $existing_player->term_id;
+								}
+								
+
+								//position
+								$position = $player->Position;
+								if ($position == 'PG' || $position == 'SG') {
+									
+									$player_position = 'Guard';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$guards = $the_team->guards;
+											$guards = $guards + $total_points;
+											$all_teams[$team_count]->guards = $guards;
+											$the_team->guards = $guards;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_guards[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Guard - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'SF' || $position == 'PF') {
+									
+									$player_position = 'Forward';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$forwards = $the_team->forwards;
+											$forwards = $forwards + $total_points;
+											$all_teams[$team_count]->forwards = $forwards;
+											$the_team->forwards = $forwards;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_forwards[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Forward - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'C') {
+									
+									$player_position = 'Center';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$centers = $the_team->centers;
+											$centers = $centers + $total_points;
+											$all_teams[$team_count]->centers = $centers;
+											$the_team->centers = $centers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_centers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Center - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								
+															
+								//player projection
+								
+								$projection = array(
+									'post_status' => 'publish',
+									'post_title' => $existing_player->name . ' - ' . $date,
+									'post_type' => 'projection',
+									'meta_input' => array (
+										'projection_type' => 'Player',
+										'projection_position' => $player_position,
+										'projection_points' => $points,
+										'projection_rebounds' => $rebounds,
+										'projection_assists' => $assists,
+										'projection_steals' => $steals,
+										'projection_blocks' => $blocks,
+										'projection_turnovers' => $turnovers,
+										'projection_points_total' => $total_points,
+										'projection_date' => $date,
+										'projection_opponent' => $player->GlobalOpponentID,
+										'PlayerID' => $player->PlayerID,
+									),
+									'tax_input' => array (
+										'player' => $existing_player->term_id,
+										'team' => $team->term_id,
+										'league' => 2,
+									),
+								);
+							
+							}
+							else if ($league == 'mlb') {
+								
+								//position
+								$position = $player->Position;
+								$position_cat = $player->PositionCategory;
+								
+								if ($position == 'C') {
+									
+									$position = 'C';
+									
+								}
+								else {
+									
+									$position = $player->PositionCategory;
+									
+									if ($position_cat == 'DH') {
+									
+										$position = $player->FanDuelPosition;
+										
+										if ($position == '1B' || $position == '2B' || $position == 'SS' || $position == '3B' || $position == 'IF') {
+											
+											$position = 'IF';
+											
+										}
+										else if ($position == 'LF' || $position == 'CF' || $position == 'RF' || $position == 'OF') {
+											
+											$position = 'OF';
+											
+										}
+										
+									}
+									
+								}								
+								
+								//keep pitching + hitting stats separate
+								
+								if ($position == 'P') {
+									
+									$total_points = (($wins*4) + ($inningspitched*0.75) - ($hitsagainst*0.5) - ($earnedruns*2) - ($pitchingwalks*0.5) - ($hitbypitch*0.5) + ($strikeouts*2) + ($nohitter*25) + ($completegames*10));
+									
+								}
+								else {
+									
+									$total_points = (($runs*2) + ($singles*3) + ($doubles*5) + ($triples*8) + ($homeruns*10) + ($rbis*2) + ($walks*2) + ($stolenbases*5) - ($caughtstealing*2));
+									
+								}
+								
+								
+								$total_points = number_format($total_points, 2);
+
+								
+								//add player to contest array
+								if ($total_points > 0) {
+									$contest_players[] = $existing_player->term_id;
+								}
+								
+
+								
+								
+								if ($position == 'IF') {
+									
+									$player_position = 'Infielder';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$infielders = $the_team->infielders;
+											$infielders = $infielders + $total_points;
+											$all_teams[$team_count]->infielders = $infielders;
+											$the_team->infielders = $infielders;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_infielders[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Infielder - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'OF') {
+									
+									$player_position = 'Outfielder';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$outfielders = $the_team->outfielders;
+											$outfielders = $outfielders + $total_points;
+											$all_teams[$team_count]->outfielders = $outfielders;
+											$the_team->outfielders = $outfielders;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_outfielders[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Outfielder - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'C') {
+									
+									$player_position = 'Catcher';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$catchers = $the_team->catchers;
+											$catchers = $catchers + $total_points;
+											$all_teams[$team_count]->catchers = $catchers;
+											$the_team->catchers = $catchers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_catchers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Catcher - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'P') {
+									
+									$player_position = 'Pitcher';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$pitchers = $the_team->pitchers;
+											$pitchers = $pitchers + $total_points;
+											$all_teams[$team_count]->pitchers = $pitchers;
+											$the_team->pitchers = $pitchers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_pitchers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Pitcher - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								
+															
+								//player projection
+								
+								$projection = array(
+									'post_status' => 'publish',
+									'post_title' => $existing_player->name . ' - ' . $date,
+									'post_type' => 'projection',
+									'meta_input' => array (
+										'projection_type' => 'Player',
+										'projection_position' => $player_position,
+										'projection_runs' => $runs,
+										'projection_singles' => $singles,
+										'projection_doubles' => $doubles,
+										'projection_triples' => $triples,
+										'projection_homeruns' => $homeruns,
+										'projection_rbis' => $rbis,
+										'projection_walks' => $walks,
+										'projection_stolenbases' => $stolenbases,
+										'projection_caughtstealing' => $caughtstealing,
+										'projection_wins' => $wins,
+										'projection_inningspitched' => $inningspitched,
+										'projection_hitsagainst' => $hitsagainst,
+										'projection_earnedrunsallowed' => $earnedruns,
+										'projection_walksagainst' => $pitchingwalks,
+										'projection_hitbatsman' => $hitbypitch,
+										'projection_pitchingstrikeouts' => $strikeouts,
+										'projection_nohitters' => $nohitter,
+										'projection_completegame' => $completegames,
+										'projection_points_total' => $total_points,
+										'projection_date' => $date,
+										'projection_opponent' => $player->GlobalOpponentID,
+										'PlayerID' => $player->PlayerID,
+									),
+									'tax_input' => array (
+										'player' => $existing_player->term_id,
+										'team' => $team->term_id,
+										'league' => 4,
+									),
+								);
+								
+							}
+							else if ($league == 'nhl') {
+								
+								
+								$total_points = (($goals*3)+($assists*2)+($shots_on_goal*0.5)+($blocked_shots*0.5)+$shorthanded_goals+$shorthanded_assists+($shootout_goals*0.25)+($hat_trick_bonus*1.5)+($goalie_win*3)+($goalie_saves*0.2)-$goalie_goals_against+($goalie_shutout*2));
+								
+								$total_points = number_format($total_points,2);
+
+								
+								//add player to contest array
+								if ($total_points > 0) {
+									$contest_players[] = $existing_player->term_id;
+								}
+								
+								//position
+								$position = $player->Position;
+								if ($position == 'LW' || $position == 'RW') {
+									
+									$player_position = 'Wing';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$wings = $the_team->wings;
+											$wings = $wings + $total_points;
+											$all_teams[$team_count]->wings = $wings;
+											$the_team->wings = $wings;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_wings[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Wing - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'D') {
+									
+									$player_position = 'Defenseman';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$defensemen = $the_team->defensemen;
+											$defensemen = $defensemen + $total_points;
+											$all_teams[$team_count]->defensemen = $defensemen;
+											$the_team->defensemen = $defensemen;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_defensemen[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Defenseman - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'C') {
+									
+									$player_position = 'Center';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$centers = $the_team->centers;
+											$centers = $centers + $total_points;
+											$all_teams[$team_count]->centers = $centers;
+											$the_team->centers = $centers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_centers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Center - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'G') {
+									
+									$player_position = 'Goalie';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$goalies = $the_team->goalies;
+											$goalies = $goalies + $total_points;
+											$all_teams[$team_count]->goalies = $goalies;
+											$the_team->goalies = $goalies;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_goalies[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerID, 'opponent' => $player->GlobalOpponentID, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Goalie - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								
+															
+								//player projection
+								
+								$projection = array(
+									'post_status' => 'publish',
+									'post_title' => $existing_player->name . ' - ' . $date,
+									'post_type' => 'projection',
+									'meta_input' => array (
+										'projection_type' => 'Player',
+										'projection_position' => $player_position,
+										'projection_goals' => $goals,
+										'projection_assists' => $assists,
+										'projection_shots_on_goal' => $shots_on_goal,
+										'projection_blocked_shots' => $blocked_shots,
+										'projection_shorthanded_goals' => $shorthanded_goals,
+										'projection_shorthanded_assists' => $shorthanded_assists,
+										'projection_shootout_goals' => $shootout_goals,
+										'projection_hat_tricks' => $hat_trick_bonus,
+										'projection_goalie_wins' => $goalie_win,
+										'projection_goalie_saves' => $goalie_saves,
+										'projection_goalie_goals_against' => $goalie_goals_against,
+										'projection_goalie_shutout' => $goalie_shutout,
+										'projection_points_total' => $total_points,
+										'projection_date' => $date,
+										'projection_opponent' => $player->GlobalOpponentID,
+										'PlayerID' => $player->PlayerID,
+									),
+									'tax_input' => array (
+										'player' => $existing_player->term_id,
+										'team' => $team->term_id,
+										'league' => 3,
+									),
+								);
+								
+							}
+							else if ($league == 'nfl') {
+						
+							}
+							else if ($league == 'ncaab') {
+								
+							}
+							else if ($league == 'ncaaf') {
+								
+							}
+							else if ($league == 'epl') {
+								
+								$total_points = (($goals*10)+($assists*6)+$shots_on_goal+$shots+($crosses*0.75)+$fouled-($fouls*0.5)+$tackle+($interceptions*0.5)-($yellowcards*1.5)-($redcards*3)-($penalty_miss*5)+($clean_sheet*3)+($saves*2)-($goals_conceded*2)+($clean_sheet_goalie*5)+($win_goalie*5)+($penalty_save*3));
+								
+								$total_points = number_format($total_points,2);
+
+								
+								//add player to contest array
+								if ($total_points > 0) {
+									$contest_players[] = $existing_player->term_id;
+								}
+								
+								//position
+								$position = $player->Position;
+								if ($position == 'M') {
+									
+									$player_position = 'Midfielder';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$midfielders = $the_team->midfielders;
+											$midfielders = $midfielders + $total_points;
+											$all_teams[$team_count]->midfielders = $midfielders;
+											$the_team->midfielders = $midfielders;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_midfielders[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Midfielder - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'A') {
+									
+									$player_position = 'Attacker';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$attackers = $the_team->attackers;
+											$attackers = $attackers + $total_points;
+											$all_teams[$team_count]->attackers = $attackers;
+											$the_team->attackers = $attackers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_attackers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Attacker - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'GK') {
+									
+									$player_position = 'Goalkeeper';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$goalkeepers = $the_team->goalkeepers;
+											$goalkeepers = $goalkeepers + $total_points;
+											$all_teams[$team_count]->goalkeepers = $goalkeepers;
+											$the_team->goalkeepers = $goalkeepers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_goalkeepers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Goalkeeper - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'D') {
+									
+									$player_position = 'Defender';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$defenders = $the_team->defenders;
+											$defenders = $defenders + $total_points;
+											$all_teams[$team_count]->defenders = $defenders;
+											$the_team->defenders = $defenders;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_defenders[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Defender - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								
+															
+								//player projection
+								
+								$projection = array(
+									'post_status' => 'publish',
+									'post_title' => $existing_player->name . ' - ' . $date,
+									'post_type' => 'projection',
+									'meta_input' => array (
+										'projection_type' => 'Player',
+										'projection_position' => $player_position,
+										'projection_goals' => $goals,
+										'projection_assists' => $assists,
+										'projection_shots_on_goal' => $shots_on_goal,
+										'projection_shots' => $shots,
+										'projection_crosses' => $crosses,
+										'projection_fouled' => $fouled,
+										'projection_fouls' => $fouls,
+										'projection_tackle' => $tackle,
+										'projection_interceptions' => $interceptions,
+										'projection_yellowcards' => $yellowcards,
+										'projection_redcards' => $redcards,
+										'projection_penalty_miss' => $penalty_miss,
+										'projection_clean_sheet' => $clean_sheet,
+										'projection_saves' => $saves,
+										'projection_goals_conceded' => $goals_conceded,
+										'projection_clean_sheet_goalie' => $clean_sheet_goalie,
+										'projection_win_goalie' => $win_goalie,
+										'projection_penalty_save' => $penalty_save,
+										'projection_points_total' => $total_points,
+										'projection_date' => $date,
+										'projection_opponent' => $player->GlobalOpponentId,
+										'PlayerID' => $player->PlayerId,
+									),
+									'tax_input' => array (
+										'player' => $existing_player->term_id,
+										'team' => $team->term_id,
+										'league' => 5,
+									),
+								);
+								
+							}
+							else if ($league == 'mls') {
+								
+								$total_points = (($goals*10)+($assists*6)+$shots_on_goal+$shots+($crosses*0.75)+$fouled-($fouls*0.5)+$tackle+($interceptions*0.5)-($yellowcards*1.5)-($redcards*3)-($penalty_miss*5)+($clean_sheet*3)+($saves*2)-($goals_conceded*2)+($clean_sheet_goalie*5)+($win_goalie*5)+($penalty_save*3));
+								
+								$total_points = number_format($total_points,2);
+
+								
+								//add player to contest array
+								if ($total_points > 0) {
+									$contest_players[] = $existing_player->term_id;
+								}
+								
+								//position
+								$position = $player->Position;
+								if ($position == 'M') {
+									
+									$player_position = 'Midfielder';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$midfielders = $the_team->midfielders;
+											$midfielders = $midfielders + $total_points;
+											$all_teams[$team_count]->midfielders = $midfielders;
+											$the_team->midfielders = $midfielders;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_midfielders[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Midfielder - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'A') {
+									
+									$player_position = 'Attacker';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$attackers = $the_team->attackers;
+											$attackers = $attackers + $total_points;
+											$all_teams[$team_count]->attackers = $attackers;
+											$the_team->attackers = $attackers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_attackers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Attacker - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'GK') {
+									
+									$player_position = 'Goalkeeper';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$goalkeepers = $the_team->goalkeepers;
+											$goalkeepers = $goalkeepers + $total_points;
+											$all_teams[$team_count]->goalkeepers = $goalkeepers;
+											$the_team->goalkeepers = $goalkeepers;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_goalkeepers[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Goalkeeper - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								else if ($position == 'D') {
+									
+									$player_position = 'Defender';
+									
+									$team_count = 0;
+									foreach ($all_teams as $the_team) {
+									
+										if ($the_team->term_id == $team->term_id) {
+											
+											$defenders = $the_team->defenders;
+											$defenders = $defenders + $total_points;
+											$all_teams[$team_count]->defenders = $defenders;
+											$the_team->defenders = $defenders;
+											$the_team->opponent = $opponent;
+											$the_team->opponent_abbrev = $opponent_abbrev;
+											$the_team->home_away = $home_away;
+											
+											if ($total_points > 0) {
+												$mixed_defenders[] = array('name' => $player->Name, 'id' => $existing_player->term_id, 'total_points' => $total_points, 'PlayerID' => $player->PlayerId, 'opponent' => $player->GlobalOpponentId, 'opponent_abbrev' => $player->Opponent, 'home_away' => strtolower($player->HomeOrAway), 'injury_status' => $player->InjuryStatus, 'injury_note' => $player->InjuryNotes);
+											}
+											
+											echo $actual_count . '. ' . $player->Name . ' - Defender - '. $team->name . ' - ' . $total_points .'<br>';
+											
+											break;
+										}
+										
+										$team_count++;
+											
+									}
+									
+								}
+								
+															
+								//player projection
+								
+								$projection = array(
+									'post_status' => 'publish',
+									'post_title' => $existing_player->name . ' - ' . $date,
+									'post_type' => 'projection',
+									'meta_input' => array (
+										'projection_type' => 'Player',
+										'projection_position' => $player_position,
+										'projection_goals' => $goals,
+										'projection_assists' => $assists,
+										'projection_shots_on_goal' => $shots_on_goal,
+										'projection_shots' => $shots,
+										'projection_crosses' => $crosses,
+										'projection_fouled' => $fouled,
+										'projection_fouls' => $fouls,
+										'projection_tackle' => $tackle,
+										'projection_interceptions' => $interceptions,
+										'projection_yellowcards' => $yellowcards,
+										'projection_redcards' => $redcards,
+										'projection_penalty_miss' => $penalty_miss,
+										'projection_clean_sheet' => $clean_sheet,
+										'projection_saves' => $saves,
+										'projection_goals_conceded' => $goals_conceded,
+										'projection_clean_sheet_goalie' => $clean_sheet_goalie,
+										'projection_win_goalie' => $win_goalie,
+										'projection_penalty_save' => $penalty_save,
+										'projection_points_total' => $total_points,
+										'projection_date' => $date,
+										'projection_opponent' => $player->GlobalOpponentId,
+										'PlayerID' => $player->PlayerId,
+									),
+									'tax_input' => array (
+										'player' => $existing_player->term_id,
+										'team' => $team->term_id,
+										'league' => 2987,
+									),
+								);
+								
+							}
+							else if ($league == 'pga') {
+								
+							}
+							else if ($league == 'nascar') {
+								
+							}
+							
+							
+							$post_exists = post_exists($existing_player->name . ' - ' . $date);
+							
+							if ($post_exists == 0) {
+								wp_insert_post( $projection );
+							}
+							else {
+								$projection['ID'] = $post_exists;
+								//wp_update_post( $projection );
+								
+								//update player position
+								//update_term_meta($existing_player->term_id, 'player_position', $player_position);
+								
+								//team
+								//update_term_meta($existing_player->term_id, 'player_team', $team->term_id);
+								
+							}
+							
+							$actual_count++;
+														
+							if (isset($cutoff_datetime) == false) {
+								$cutoff_datetime = $player->DateTime;
+							}
+							else if ($player->DateTime < $cutoff_datetime) {
+								$cutoff_datetime = $player->DateTime;
+							}
+							
+						}
+	
+					}
+									
+				}
+			
+			}
+			
+		//}
+		
+		$count++;
+		
+	}
+
+	echo '<br>';
+
+
+
+	//team projections
+	
+	if ($actual_count > 0) {
+
+		$contest_teams = array();
+		
+		foreach ($all_teams as $team) {
+			
+			if ($league == 'nba') {
+			
+				$total_points = number_format($team->guards + $team->forwards + $team->centers, 2);
+			
+			}
+			else if ($league == 'mlb') { 
+				
+				$total_points = number_format($team->pitchers + $team->catchers + $team->infielders + $team->outfielders, 2);
+				
+			}
+			else if ($league == 'nhl') { 
+				
+				$total_points = number_format($team->goalies + $team->wings + $team->defensemen + $team->wings, 2);
+				
+			}
+			else if ($league == 'nfl') {
+						
+			}
+			else if ($league == 'ncaab') {
+				
+			}
+			else if ($league == 'ncaaf') {
+				
+			}
+			else if ($league == 'epl') {
+				
+				$total_points = number_format($team->goalkeepers + $team->attackers + $team->midfielders + $team->defenders, 2);
+				
+			}
+			else if ($league == 'mls') {
+				
+				$total_points = number_format($team->goalkeepers + $team->attackers + $team->midfielders + $team->defenders, 2);
+				
+			}
+			else if ($league == 'pga') {
+				
+			}
+			else if ($league == 'nascar') {
+				
+			}
+			
+			if ($total_points > 0) {
+				
+				$date = strtoupper(date('Y-m-d'));
+				
+				$opponent = $team->opponent;
+				$opponent_abbrev = $team->opponent_abbrev;
+				$home_away = $team->home_away;
+				
+				//echo $team->name . ' ' . $total_points. '<br>';
+			
+				if ($league == 'nba') {
+			
+					$projection = array(
+						'post_status' => 'publish',
+						'post_title' => $team->name . ' - ' . $date,
+						'post_type' => 'projection',
+						'meta_input' => array (
+							'projection_type' => 'Team',
+							'projection_guards' => $team->guards,
+							'projection_forwards' => $team->forwards,
+							'projection_centers' => $team->centers,
+							'projection_points_total' => number_format($total_points,2),
+							'projection_date' => $date,
+							'TeamID' => $team->TeamID,
+						),
+						'tax_input' => array (
+							'team' => $team->term_id,
+							'league' => 2,
+						),
+					);
+					
+					$teams_data[] = array('name' => $team->name, 'id' => $team->term_id, 'opponent' => $opponent, 'home_away' => $home_away, 'opponent_abbrev' => $opponent_abbrev, 'total_points' => number_format($total_points,2), 'TeamID' => $team->TeamID, 'total_guards' => number_format($team->guards,2), 'total_forwards' => number_format($team->forwards,2), 'total_centers' => number_format($team->centers,2));
+				
+				}
+				else if ($league == 'mlb') {
+					
+					$projection = array(
+						'post_status' => 'publish',
+						'post_title' => $team->name . ' - ' . $date,
+						'post_type' => 'projection',
+						'meta_input' => array (
+							'projection_type' => 'Team',
+							'projection_infielders' => $team->infielders,
+							'projection_outfielders' => $team->outfielders,
+							'projection_pitchers' => $team->pitchers,
+							'projection_catchers' => $team->catchers,
+							'projection_points_total' => number_format($total_points,2),
+							'projection_date' => $date,
+							'TeamID' => $team->TeamID,
+						),
+						'tax_input' => array (
+							'team' => $team->term_id,
+							'league' => 4,
+						),
+					);
+					
+					$teams_data[] = array('name' => $team->name, 'id' => $team->term_id, 'opponent' => $opponent, 'home_away' => $home_away, 'opponent_abbrev' => $opponent_abbrev, 'total_points' => number_format($total_points,2), 'TeamID' => $team->TeamID, 'total_infielders' => number_format($team->infielders,2), 'total_outfielders' => number_format($team->outfielders,2), 'total_catchers' => number_format($team->catchers,2), 'total_pitchers' => number_format($team->pitchers,2));
+					
+				}
+				else if ($league == 'nhl') {
+					
+					$projection = array(
+						'post_status' => 'publish',
+						'post_title' => $team->name . ' - ' . $date,
+						'post_type' => 'projection',
+						'meta_input' => array (
+							'projection_type' => 'Team',
+							'projection_goalies' => $team->goalies,
+							'projection_wings' => $team->wings,
+							'projection_defensemen' => $team->defensemen,
+							'projection_centers' => $team->centers,
+							'projection_points_total' => number_format($total_points,2),
+							'projection_date' => $date,
+							'TeamID' => $team->TeamID,
+						),
+						'tax_input' => array (
+							'team' => $team->term_id,
+							'league' => 3,
+						),
+					);
+					
+					
+					$teams_data[] = array('name' => $team->name, 'id' => $team->term_id, 'opponent' => $opponent, 'home_away' => $home_away, 'opponent_abbrev' => $opponent_abbrev, 'total_points' => number_format($total_points,2), 'TeamID' => $team->TeamID, 'total_wings' => number_format($team->wings,2), 'total_centers' => number_format($team->centers,2), 'total_defensemen' => number_format($team->defensemen,2), 'total_goalies' => number_format($team->goalies,2));
+
+				}
+				else if ($league == 'nfl') {
+						
+				}
+				else if ($league == 'ncaab') {
+					
+				}
+				else if ($league == 'ncaaf') {
+					
+				}
+				else if ($league == 'epl') {
+					
+					$projection = array(
+						'post_status' => 'publish',
+						'post_title' => $team->name . ' - ' . $date,
+						'post_type' => 'projection',
+						'meta_input' => array (
+							'projection_type' => 'Team',
+							'projection_goalkeepers' => $team->goalkeepers,
+							'projection_defenders' => $team->defenders,
+							'projection_midfielders' => $team->midfielders,
+							'projection_attackers' => $team->attackers,
+							'projection_points_total' => number_format($total_points,2),
+							'projection_date' => $date,
+							'TeamID' => $team->TeamID,
+						),
+						'tax_input' => array (
+							'team' => $team->term_id,
+							'league' => 5,
+						),
+					);
+					
+					
+					$teams_data[] = array('name' => $team->name, 'id' => $team->term_id, 'opponent' => $opponent, 'home_away' => $home_away, 'opponent_abbrev' => $opponent_abbrev, 'total_points' => number_format($total_points,2), 'TeamID' => $team->TeamID, 'total_goalkeepers' => number_format($team->goalkeepers,2), 'total_attackers' => number_format($team->attackers,2), 'total_midfielders' => number_format($team->midfielders,2), 'total_defenders' => number_format($team->defenders,2));
+					
+				}
+				else if ($league == 'mls') {
+					
+					$projection = array(
+						'post_status' => 'publish',
+						'post_title' => $team->name . ' - ' . $date,
+						'post_type' => 'projection',
+						'meta_input' => array (
+							'projection_type' => 'Team',
+							'projection_goalkeepers' => $team->goalkeepers,
+							'projection_defenders' => $team->defenders,
+							'projection_midfielders' => $team->midfielders,
+							'projection_attackers' => $team->attackers,
+							'projection_points_total' => number_format($total_points,2),
+							'projection_date' => $date,
+							'TeamID' => $team->TeamID,
+						),
+						'tax_input' => array (
+							'team' => $team->term_id,
+							'league' => 2987,
+						),
+					);
+					
+					
+					$teams_data[] = array('name' => $team->name, 'id' => $team->term_id, 'opponent' => $opponent, 'home_away' => $home_away, 'opponent_abbrev' => $opponent_abbrev, 'total_points' => number_format($total_points,2), 'TeamID' => $team->TeamID, 'total_goalkeepers' => number_format($team->goalkeepers,2), 'total_attackers' => number_format($team->attackers,2), 'total_midfielders' => number_format($team->midfielders,2), 'total_defenders' => number_format($team->defenders,2));
+					
+				}
+				else if ($league == 'pga') {
+					
+				}
+				else if ($league == 'nascar') {
+					
+				}
+				
+				$contest_teams[] = $team->term_id;
+				$post_exists = post_exists($team->name . ' - ' . $date);
+				
+				if ($post_exists == 0) {
+					wp_insert_post( $projection );
+				}
+				else {
+					$projection['ID'] = $post_exists;
+					//wp_update_post( $projection );
+				}
+							
+			}
+			
+		}
+		
+	
+		//create contests
+		
+		$date = strtoupper(date('m-d-Y g:i a', strtotime($cutoff_datetime) - 60 * 60 * 3));
+		$date_unix = strtoupper(date('U', strtotime($cutoff_datetime) - 60 * 60 * 3));
+		$date_notime = date('m-d-Y', strtotime($cutoff_datetime) - 60 * 60 * 3);
+		$date_notime_day = date('l F jS', strtotime($cutoff_datetime) - 60 * 60 * 3);
+		$date_sort = strtoupper(date('Y-m-d H:i:s', strtotime($cutoff_datetime) - 60 * 60 * 3));
+		
+		$team_contest = array(
+			'post_status' => 'publish',
+			'post_title' => strtoupper($league) . ': Teams ' . $date_notime,
+			'post_type' => 'contest',
+			'meta_input' => array (
+				'contest_type' => 'Teams',
+				'contest_date' => $date_unix,
+				'contest_date_sort' => $date_sort,
+				'contest_status' => 'Open',
+				'contest_data' => json_encode($teams_data, JSON_UNESCAPED_UNICODE),
+				'contest_title_without_type' => strtoupper($league) . ': ' . $date_notime_day,
+			),
+			'tax_input' => array (
+				'team' => $contest_teams,
+				'league' => $tax_league,
+			),
+		);
+		
+		$post_exists = post_exists(strtoupper($league) . ': Teams ' . $date_notime);
+				
+		if ($post_exists == 0) {
+			wp_insert_post( $team_contest );
+		}
+		else {
+			$team_contest['ID'] = $post_exists;
+			wp_update_post( $team_contest );
+		}
+		
+		
+		if ($league == 'nba') {
+		
+			$mixed_data['centers'] = $mixed_centers;
+			$mixed_data['forwards'] = $mixed_forwards;
+			$mixed_data['guards'] = $mixed_guards;
+		
+		}
+		else if ($league == 'mlb') {
+			
+			$mixed_data['catchers'] = $mixed_catchers;
+			$mixed_data['pitchers'] = $mixed_pitchers;
+			$mixed_data['infielders'] = $mixed_infielders;
+			$mixed_data['outfielders'] = $mixed_outfielders;
+			
+		}
+		else if ($league == 'nhl') {
+			
+			$mixed_data['goalies'] = $mixed_goalies;
+			$mixed_data['centers'] = $mixed_centers;
+			$mixed_data['wings'] = $mixed_wings;
+			$mixed_data['defensemen'] = $mixed_defensemen;
+			
+		}
+		else if ($league == 'nfl') {
+						
+		}
+		else if ($league == 'ncaab') {
+			
+		}
+		else if ($league == 'ncaaf') {
+			
+		}
+		else if ($league == 'epl') {
+			
+			$mixed_data['goalkeepers'] = $mixed_goalkeepers;
+			$mixed_data['defenders'] = $mixed_defenders;
+			$mixed_data['attackers'] = $mixed_attackers;
+			$mixed_data['midfielders'] = $mixed_midfielders;
+			
+		}
+		else if ($league == 'mls') {
+			
+			$mixed_data['goalkeepers'] = $mixed_goalkeepers;
+			$mixed_data['defenders'] = $mixed_defenders;
+			$mixed_data['attackers'] = $mixed_attackers;
+			$mixed_data['midfielders'] = $mixed_midfielders;
+			
+		}
+		else if ($league == 'pga') {
+			
+		}
+		else if ($league == 'nascar') {
+			
+		}
+		
+		$mixed_contest = array(
+			'post_status' => 'publish',
+			'post_title' => strtoupper($league) . ': Mixed ' . $date_notime,
+			'post_type' => 'contest',
+			'meta_input' => array (
+				'contest_type' => 'Mixed',
+				'contest_date' => $date_unix,
+				'contest_date_sort' => $date_sort,
+				'contest_status' => 'Open',
+				'contest_data' => json_encode($mixed_data, JSON_UNESCAPED_UNICODE),
+				'contest_title_without_type' => strtoupper($league) . ': ' . $date_notime_day,
+			),
+			'tax_input' => array (
+				'player' => $contest_players,
+				'league' => $tax_league,
+			),
+		);
+		
+		$post_exists = post_exists(strtoupper($league) . ': Mixed ' . $date_notime);
+				
+		if ($post_exists == 0) {
+			wp_insert_post( $mixed_contest );
+		}
+		else {
+			$mixed_contest['ID'] = $post_exists;
+			wp_update_post( $mixed_contest );
+		}
+	
+		echo '<div id="message" class="updated fade"><p>' . strtoupper($league) . ' players, projections and contests updated for ' .$date. '</p></div>';
+		
+	}
+	else {
+		
+		echo '<div id="message" class="updated fade"><p>' . 'There are no ' . strtoupper($league) . ' games on ' .$date. '</p></div>';
+		
+	}
+	
+}
+
+function update_nba_teams() {
+	
+	$request = wp_remote_post( 'https://fly.sportsdata.io/v3/nba/stats/JSON/teams', array(
+		'method' => 'GET',
+	    'headers' => array(
+	        'Ocp-Apim-Subscription-Key' => 'bc9cadb71f044f38b71a0c012b97f674',
+	    ),
+	) );
+	
+	$response = json_decode($request['body']);
+		
+	foreach ($response as $team) {
+		
+		//print_r($team);
+		
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'name' => $team->City . ' ' . $team->Name,
+		);
+		
+		$team_term = get_terms($args);
+		
+		if ($team_term) {
+			
+			foreach ($team_term as $existing_team) {
+				
+				update_term_meta($existing_team->term_id, 'TeamID', $team->GlobalTeamID);
+				
+			}
+
+		}
+		else {
+			
+			$new_team = wp_insert_term( $team->City . ' ' . $team->Name, 'team', array( 'parent' => 41 ) );
+			update_term_meta($new_team['term_id'], 'TeamID', $team->GlobalTeamID);
+			update_term_meta($new_team['term_id'], 'team_abbreviation', $team->Key);
+			
+			
+		}
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' . 'NBA teams updated.' . '</p></div>';
+	
+}
+
+function update_mlb_teams() {
+	
+	$request = wp_remote_post( 'https://fly.sportsdata.io/v3/mlb/stats/JSON/teams', array(
+		'method' => 'GET',
+	    'headers' => array(
+	        'Ocp-Apim-Subscription-Key' => '562f123e387a4c2bbb37395741d0a539',
+	    ),
+	) );
+	
+	$response = json_decode($request['body']);
+		
+	foreach ($response as $team) {
+		
+		//print_r($team);
+
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'name' => $team->City . ' ' . $team->Name,
+		);
+		
+		$team_term = get_terms($args);
+		
+		if ($team_term) {
+			
+			foreach ($team_term as $existing_team) {
+				
+				update_term_meta($existing_team->term_id, 'TeamID', $team->GlobalTeamID);
+				
+			}
+
+		}
+		else {
+			
+			$new_team = wp_insert_term( $team->City . ' ' . $team->Name, 'team', array( 'parent' => 1969 ) );
+			update_term_meta($new_team['term_id'], 'TeamID', $team->GlobalTeamID);
+			update_term_meta($new_team['term_id'], 'team_abbreviation', $team->Key);
+			
+			
+		}
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' . 'MLB teams updated.' . '</p></div>';
+	
+}
+
+function update_nhl_teams() {
+	
+	$request = wp_remote_post( 'https://fly.sportsdata.io/v3/nhl/stats/JSON/teams', array(
+		'method' => 'GET',
+	    'headers' => array(
+	        'Ocp-Apim-Subscription-Key' => '9e85633580fd45ed9e5c464ce10e7aee',
+	    ),
+	) );
+	
+	$response = json_decode($request['body']);
+		
+	foreach ($response as $team) {
+		
+		//print_r($team);
+
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'name' => $team->City . ' ' . $team->Name,
+		);
+		
+		$team_term = get_terms($args);
+		
+		if ($team_term) {
+			
+			foreach ($team_term as $existing_team) {
+				
+				update_term_meta($existing_team->term_id, 'TeamID', $team->GlobalTeamID);
+				
+			}
+
+		}
+		else {
+			
+			$new_team = wp_insert_term( $team->City . ' ' . $team->Name, 'team', array( 'parent' => 42 ) );
+			update_term_meta($new_team['term_id'], 'TeamID', $team->GlobalTeamID);
+			update_term_meta($new_team['term_id'], 'team_abbreviation', $team->Key);
+			
+			
+		}
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' . 'NHL teams updated.' . '</p></div>';
+	
+}
+
+function update_nfl_teams() {
+	
+	$request = wp_remote_post( 'https://fly.sportsdata.io/v3/nfl/stats/JSON/teams', array(
+		'method' => 'GET',
+	    'headers' => array(
+	        'Ocp-Apim-Subscription-Key' => '4d0325105daa44a49321d4acb82718c6',
+	    ),
+	) );
+	
+	$response = json_decode($request['body']);
+		
+	foreach ($response as $team) {
+		
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'name' => $team->City . ' ' . $team->Name,
+		);
+		
+		$team_term = get_terms($args);
+				
+		if ($team_term) {
+			
+			foreach ($team_term as $existing_team) {
+								
+				update_term_meta($existing_team->term_id, 'TeamID', $team->GlobalTeamID);
+				
+			}
+
+		}
+		else {
+			
+			$new_team = wp_insert_term( $team->City . ' ' . $team->Name, 'team', array( 'parent' => 2065 ) );
+			update_term_meta($new_team['term_id'], 'TeamID', $team->GlobalTeamID);
+			update_term_meta($new_team['term_id'], 'team_abbreviation', $team->Key);
+			
+			
+		}
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' . 'NFL teams updated.' . '</p></div>';
+	
+}
+
+function update_mls_teams() {
+	
+	$request = wp_remote_post( 'https://fly.sportsdata.io/v3/soccer/stats/json/CompetitionDetails/MLS', array(
+		'method' => 'GET',
+	    'headers' => array(
+	        'Ocp-Apim-Subscription-Key' => '4ee248e814c54f54a6a5c5d4f6f56772',
+	    ),
+	) );
+	
+	$response = json_decode($request['body']);
+	
+	$count = 0;
+	
+	foreach ($response->Teams as $team) {
+		
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'meta_key' => 'TeamID',
+			'meta_value' => $team->GlobalTeamId,
+		);
+		
+		$team_term = get_terms($args);
+		
+		if ($team_term) {
+			
+			foreach ($team_term as $existing_team) {
+				
+				update_term_meta($existing_team->term_id, 'TeamID', $team->GlobalTeamId);
+				
+				$count++;
+				
+			}
+
+		}
+		else {
+			
+			$new_team = wp_insert_term( $team->Name, 'team', array( 'parent' => 2988 ) );
+			update_term_meta($new_team['term_id'], 'TeamID', $team->GlobalTeamId);
+			update_term_meta($new_team['term_id'], 'team_abbreviation', $team->Key);
+			
+			$count++;
+			
+		}
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' .$count. ' MLS teams updated.' . '</p></div>';
+	
+}
+
+function update_epl_teams() {
+	
+	$request = wp_remote_post( 'https://fly.sportsdata.io/v3/soccer/stats/json/CompetitionDetails/EPL', array(
+		'method' => 'GET',
+	    'headers' => array(
+	        'Ocp-Apim-Subscription-Key' => '4ee248e814c54f54a6a5c5d4f6f56772',
+	    ),
+	) );
+	
+	$response = json_decode($request['body']);
+	
+	$count = 0;
+	
+	foreach ($response->Teams as $team) {
+		
+		$args = array(
+			'taxonomy' => 'team',
+			'hide_empty' => false,
+			'meta_key' => 'TeamID',
+			'meta_value' => $team->GlobalTeamId,
+		);
+		
+		$team_term = get_terms($args);
+		
+		if ($team_term) {
+			
+			foreach ($team_term as $existing_team) {
+				
+				update_term_meta($existing_team->term_id, 'TeamID', $team->GlobalTeamId);
+				
+				$count++;
+				
+			}
+
+		}
+		else {
+			
+			$new_team = wp_insert_term( $team->FullName, 'team', array( 'parent' => 3013 ) );
+			update_term_meta($new_team['term_id'], 'TeamID', $team->GlobalTeamId);
+			update_term_meta($new_team['term_id'], 'team_abbreviation', $team->Key);
+			
+			$count++;
+			
+		}
+		
+	}
+	
+	echo '<div id="message" class="updated fade"><p>' .$count. ' EPL teams updated.' . '</p></div>';
+	
+}
+
+function delete_projections() {
+	
+	
+	$args = array(
+		'post_type' => 'projection',
+		'posts_per_page' => -1,
+	);
+	
+	$count = 0;
+	
+	$the_query = new WP_Query( $args );
+				
+	if ( $the_query->have_posts() ) {
+		
+		while ( $the_query->have_posts() ) {
+			
+			$the_query->the_post();
+
+			global $post;
+			
+			wp_delete_post($post->ID);
+
+			$count++;
+		}
+	}
+	wp_reset_query();
+
+	echo '<div id="message" class="updated fade"><p>' .$count .' Projections deleted.' . '</p></div>';
+		
+}
+
+?>

@@ -1,0 +1,57 @@
+<?php /* Template Name: Admin Dashboard */ ?>
+
+<?php 
+if (is_user_logged_in()) {
+	
+	if (current_user_can('administrator')) {
+		
+		if (isset($_GET['viewas'])) {
+			
+			$current_user_id = $_GET['viewas'];
+			
+		} 
+		else {
+			
+			$current_user_id = get_current_user_id();
+			
+		}
+		
+	}
+	else {
+		
+		$current_user_id = get_current_user_id();
+		
+	}
+	
+} else {
+	
+	header("Location: ".home_url( $path = '/admin'));
+	exit;
+	
+}
+?>
+
+<?php get_header(); ?>
+
+<div class="page-hero my-contests-hero" style="background-image:url(<?php echo get_the_post_thumbnail_url($post->ID,'full'); ?>)">
+	
+	<div class="hero-details centered-vertical noselect">
+		
+		<div class="inner-wrap">
+	
+			<h1><?php the_title(); ?></h1>
+			<h2><?php echo get_field('my_contests_h2', $post->ID); ?></h2>
+			
+			<a class="leaderboard-btn" href="/leaderboard/">View Leaderboard</a>
+		
+		</div>
+		
+	</div>
+	
+</div>
+
+<div class="">
+    
+</div>
+
+<?php get_footer(); ?>

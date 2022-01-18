@@ -1,0 +1,240 @@
+* {
+    font-family: 'Inter', sans-serif;
+}
+body {
+    font-size: 14px;
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+.table th {
+    font-weight: 500;
+    background: #1F375B;
+    color: #fff;
+    border: none !important;
+    font-size: 12px;
+    text-transform: uppercase;
+}
+.table td {
+    color: #222;
+}
+.input-small {
+    width: 100px;
+    margin: 0px auto;
+    max-width: 100%;
+    text-align: center;
+}
+.bg-light {
+    background: rgba(44, 145, 247, 0.9) !important;
+}
+.bg-light a {
+    color: #fff !important;
+}
+.bg-light .active a {
+    font-weight: 500;
+}
+.navbar-light {
+    width: 1150px;
+    margin: 0px auto;
+}
+
+#navbarNav .navbar-nav
+{
+    align-items: center;
+}
+
+.btn-primary {
+    background: linear-gradient(0deg, rgb(44, 181, 89), rgb(54, 196, 101)) !important;
+    border-color: rgb(44, 181, 89) !important;
+    box-shadow: none !important;
+}
+.btn-secondary {
+    background: #D92B4C !important;
+    border-color: #D92B4C !important;
+    box-shadow: none !important;
+}
+.text-secondary {
+    background: #8BA1B7;
+    color: #fff !important;
+    padding: 15px 20px;
+    border-radius: 3px;
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 16px;
+}
+.nav-logo .px-logo
+{
+    width: 190px;
+}
+.large-reports-wrapper table
+{
+    font-size: 13px;
+}
+
+#navbarNav
+{
+    justify-content: space-between;
+}
+
+/**  Search icon css */
+
+.contest-manager button.btn.btn-primary{
+    background: #1F375B !important;
+    border: none;
+}
+
+.contest-manager .badge-danger {
+    color: #DA2E2E !important;
+    background-color: #f8d7da !important;
+    padding: 7px;
+    font-weight: 500;
+    font-size: 12px;
+}
+.contest-manager .badge-success {
+    color: #35C773 !important;
+    background-color: rgba(47, 205, 114, 0.2) !important;
+    padding: 7px;
+    font-weight: 500;
+    font-size: 12px;
+}
+.contest-manager .badge-warning {
+    color: #D79000 !important;
+    background-color: rgba(255, 192, 64, 0.26) !important;
+    padding: 7px;
+    font-weight: 500;
+    font-size: 12px;
+}
+.contest-manager .badge-info {
+    color: #1B81E8 !important;
+    background-color: rgba(65, 156, 248, 0.2) !important;
+    padding: 7px;
+    font-weight: 500;
+    font-size: 12px;
+}
+.contest-manager .badge-disable {
+    color: rgba(0, 0, 0, 0.4) !important;
+    background-color: rgba(164, 164, 164, 0.2) !important;
+    padding: 7px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.contest-manager a.btn.btn-info {
+    padding: 3px 6px;
+    background: #419CF8 !important;
+    border: none;
+    box-shadow: none !important;
+    font-size: 12px;
+    font-weight: 500;
+}
+.contest-manager{
+    position: relative;
+}
+.contest-manager .calender-css {
+    position: absolute;
+    right: 30px;
+    top: 9px;
+}
+.custom-switch {
+    position: relative;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+.custom-switch input {
+    position: absolute;
+    visibility: hidden;
+    opacity: 0;
+    height: 100%;
+    width: 100%;
+}
+.custom-switch span {    
+    width: 40px;
+    height: 14px;
+    border-radius: 7px;
+    background: #aeaeae;
+    display: block;
+    position: relative;
+
+}
+.custom-switch span:after {
+    background: #F1F1F1;
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    content: "";
+    position: absolute;
+    box-shadow: 0px 0px 1px rgb(0 0 0 / 12%), 0px 1px 1px rgb(0 0 0 / 24%);
+    top: -3px;
+    left: 0;
+    transition: left .25s;
+}
+.custom-switch input:checked + span {
+    background: #c4e1ff;
+}
+.custom-switch input:checked + span:after { 
+    background: #419CF8;
+    left: calc(100% - 20px);
+}
+.form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.form-header .btn {
+    padding: 10px 30px;
+    font-weight: 600;
+    margin-left: 10px;
+}
+.form-header .btn-primary {
+    background: #419CF8 !important;
+    border-color: #419CF8 !important;
+}
+.w-15{
+    width:15%;
+}
+.result-wrap table.table.table-bordered.mb-3 td {
+    width: 20%;
+}
+.game-time {
+    text-align: left;
+    font-size: 13px;
+}
+.game-time ul li {
+    list-style: none;
+    margin-top: 8px;
+}
+.betting-score-box{
+    /* border: 1px solid #dee2e6; */
+    background: #1F375B;
+    color: #fff;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+.wager-block-header{
+    padding: 0 15px;
+}
+.wager-block-header div{
+    background: #e9ecef;
+    padding: 12px 0 5px 0;
+}
+.table.table-total th{
+    background-color: #1F375B;
+}
+
+/* game details bet type css */
+.betting-score-box span.wager-change{
+    color: #4bb94b;
+}
+
+table.table.table-total.table-bordered.mb-3.mt-5 {
+    margin-top: 15px !important;
+}
+td.loss-result-text{
+    color: #DA2E2E;
+}td.win-result-text{
+    color: #35C773;
+}
+td.all-bets-result {
+    font-weight: 600;
+}
