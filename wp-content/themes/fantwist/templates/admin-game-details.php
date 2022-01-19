@@ -463,7 +463,7 @@ if ($the_query->have_posts()) {
                 $team_1_moneyline = $_REQUEST['money-line-team-1'];
                 $team_2_moneyline = $_REQUEST['money-line-team-2'];
                 $overunder = $_REQUEST['over-under'];
-                $betting_status = ($_REQUEST['betting_status'] !== "") ? $_REQUEST['betting_status'] : 0;
+                $betting_status = ($_REQUEST['betting_status'] === "0") ? 0 : 2;
                 $reason_to_close = isset($_REQUEST['reason_to_close']) ? $_REQUEST['reason_to_close'] : "";
 
                 global $current_user;

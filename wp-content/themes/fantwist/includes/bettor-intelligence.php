@@ -205,10 +205,10 @@
 
 			<div class="table-cell column-total">TOTAL</div>
 			<div class="table-cell column-total"><?php echo $total_wins .'/'. $total_wagers ?></div>
-			<div class="table-cell column-total"><?php if ($total_wagers != 0) {
+			<div class="table-cell column-total"><?php if ($total_wagers != 0 || $total_wins !=0) {
 														echo number_format(($total_wins/ $total_wagers)*100,2)."%";
 													} else {
-														echo '0';
+														echo '0%';
 													} ?></div>
 
 		</div>

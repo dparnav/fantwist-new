@@ -4441,12 +4441,12 @@ if ($nfl_main_contest != '') {
 										if ($date_differenece < 0 || $time_differenece < 0) {
 											$game_started = false;
 											$projected_or_live = 'Projected Fantasy Points: ';
-											if (isset($betting_status) && $betting_status == 0) {
-												$contest_status_html = "open for betting";
-												$not_active = "";
-											} else {
+											if (isset($betting_status) && $betting_status == 2) {
 												$contest_status_html = "in progress";
 												$not_active = "not-active";
+											} else {
+												$contest_status_html = "open for betting";
+												$not_active = "";
 											}
 										} else {
 											$game_started = true;
@@ -4707,12 +4707,12 @@ if ($nfl_main_contest != '') {
 											} else {
 												$projected_or_live = 'Projected Fantasy Points: ';
 												$game_started = false;
-												if (isset($betting_status) && $betting_status == 0) {
-													$contest_status_html = "open for betting";
-													$not_active = "";
-												} else {
+												if (isset($betting_status) && $betting_status == 2) {
 													$contest_status_html = "in progress";
 													$not_active = "not-active";
+												} else {
+													$contest_status_html = "open for betting";
+													$not_active = "";
 												}
 											}
 										}
@@ -5110,7 +5110,9 @@ if ($_GET['bet'] == '1') {
 			jQuery('#popupBetTeam').html('<div class="bet-title-popup">Wager Details: </div><div class="bet-value-popup">' + contestTeam + '</div>');
 			jQuery('#popupWagerType').html('<div class="bet-title-popup">Wager type: </div><div class="bet-value-popup">' + wagerType + '</div>');
 			// jQuery('#popupWagerAmount').html('<div class="bet-title-popup">Wager Amount: </div><div class="bet-value-popup">' + wagerAmount + '</div>');
-			jQuery('#wagerPopupBox').fadeIn();
+			// jQuery('#wagerPopupBox').fadeIn();
+			window.location = "<?= home_url() . '/contest/' . $post->ID ?>";
+
 		});
 
 		function closeThePopupBox() {
@@ -5297,4 +5299,4 @@ if ($_GET['bet'] == '1') {
 		});
 	}
 </script>
-	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
