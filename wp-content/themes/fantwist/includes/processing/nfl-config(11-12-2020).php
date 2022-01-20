@@ -204,7 +204,7 @@ if ($show_updated_points_message == true) {
 
 if (isset($_POST['create_nfl_projections_and_contests_button_clicked'])) {
 	
-	$projection_key = 'bceb1cce6c0642b3bce9b930216bcae8';
+	$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	if (isset($_POST['schedule_id'])) {
 		

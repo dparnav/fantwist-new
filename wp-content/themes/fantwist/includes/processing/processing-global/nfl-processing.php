@@ -4501,7 +4501,7 @@ add_action('nfl_update_live_cron', 'nfl_update_live_cron');
 function nfl_update_live_cron()
 {
 
-	$stats_key = 'cc1a0c813b9b4267990116eb45c900b9';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	update_live_nfl_contests($stats_key, false);
 
 	/*

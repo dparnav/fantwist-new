@@ -1017,15 +1017,15 @@ function create_contest_automatically()
 		$today_league_types = ['nhl', 'nba', 'mlb'];
 		foreach ($today_league_types as $today_league_type) {
 			if ($today_league_type == "nhl") {
-				$projection_key = '67b23e7c2516424f97f6874947a62430';
+				$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 			}
 
 			if ($today_league_type == "nba") {
-				$projection_key = '055ebc1d62c84913bfbe4437aad5b267';
+				$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 			}
 
 			if ($today_league_type == "mlb") {
-				$projection_key = 'd52da89973df40989625a6aa8ac3874c';
+				$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 			}
 
 			$today_args = array(
@@ -1102,7 +1102,7 @@ function create_contenst_nfl_automatically()
 {
 	//for nfl
 	$today_current_date = current_time('timestamp');
-	$projection_key = "bceb1cce6c0642b3bce9b930216bcae8";
+	$projection_key = "1f84d3da9fcb4f8fb276be1503989a33";
 	$all_terms = get_terms('schedule', array('hide_empty' => false,));
 	foreach ($all_terms as $term) {
 		if ($term->description != "") {
@@ -1178,19 +1178,19 @@ function update_contest_projection_scores()
 
 	foreach ($today_league_types as $today_league_type) {
 		if ($today_league_type == "nhl") {
-			$projection_key = '67b23e7c2516424f97f6874947a62430';
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 
 		if ($today_league_type == "nba") {
-			$projection_key = '055ebc1d62c84913bfbe4437aad5b267';
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 
 		if ($today_league_type == "mlb") {
-			$projection_key = 'd52da89973df40989625a6aa8ac3874c';
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 
 		if ($today_league_type == "nfl") {
-			$projection_key = 'bceb1cce6c0642b3bce9b930216bcae8';
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 
 		$update_projection_scores = "update_" . $today_league_type . "_projection_scores";
@@ -1209,16 +1209,16 @@ function update_contest_live_scores()
 
 	foreach ($today_league_types as $today_league_type) {
 		if ($today_league_type == "nhl") {
-			$stats_key = '815cb1bd3a7c4c8db30a5aee76dcf9c0';
+			$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 		if ($today_league_type == "nba") {
-			$stats_key = '7cba61c8edbc4c4486b8b97308c3af08';
+			$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 		if ($today_league_type == "mlb") {
-			$stats_key = '8a0f611eb4fd46b384f9e390a43b5b92';
+			$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 		if ($today_league_type == "nfl") {
-			$stats_key = 'f75cd5d61287488292aa33b77a898aa6';
+			$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 
 		$update_live_scores = "update_" . $today_league_type . "_live_scores";
@@ -1285,7 +1285,7 @@ function setting_teaser_points_for_different_league($league_type)
 
 function create_nfl_schedule_automatically()
 {
-	nfl_schedule_create('f75cd5d61287488292aa33b77a898aa6');
+	nfl_schedule_create('1f84d3da9fcb4f8fb276be1503989a33');
 }
 
 add_action('my_event_to_create_nfl_schedule_automatically', 'create_nfl_schedule_automatically');

@@ -77,7 +77,7 @@ if ($show_updated_points_message == true) {
 
 if (isset($_POST['create_nhl_projections_and_contests_button_clicked'])) {
 	
-	$projection_key = '67b23e7c2516424f97f6874947a62430';
+	$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	$date = date_create($_POST['custom_date_entry']);
 	$date = date_format($date,"Y-M-d");
@@ -92,7 +92,7 @@ if (isset($_POST['create_nhl_projections_and_contests_button_clicked'])) {
 }
 if (isset($_POST['update_live_nhl_contests_button_clicked'])){
 	
-	$stats_key = '815cb1bd3a7c4c8db30a5aee76dcf9c0';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	update_live_nhl_contests($stats_key, false);
 	
@@ -101,7 +101,7 @@ if (isset($_POST['update_live_nhl_contests_button_clicked'])){
 }
 if (isset($_POST['process_finished_nhl_contests_button'])) {
 	
-	$stats_key = '815cb1bd3a7c4c8db30a5aee76dcf9c0';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	process_finished_nhl_contests($stats_key);
 	

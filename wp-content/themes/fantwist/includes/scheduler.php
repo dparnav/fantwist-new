@@ -2,7 +2,7 @@
 
 <?php 
 // $stats_key = '562f123e387a4c2bbb37395741d0a539';
-$stats_key = '8a0f611eb4fd46b384f9e390a43b5b92';
+$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 update_live_mlb_contests($stats_key, false);
 
 $user_id = get_current_user_id();

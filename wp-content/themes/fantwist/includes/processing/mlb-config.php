@@ -119,7 +119,7 @@ if ($show_updated_points_message == true) {
 
 if (isset($_POST['create_mlb_projections_and_contests_button_clicked'])) {
 	
-	$projection_key = 'd52da89973df40989625a6aa8ac3874c'; // '2100a540c8344b4d94399e64e604ccb3';
+	$projection_key = '1f84d3da9fcb4f8fb276be1503989a33'; // '2100a540c8344b4d94399e64e604ccb3';
 
 	$date = date_create($_POST['custom_date_entry']);
 	$date = date_format($date,"Y-M-d");
@@ -134,7 +134,7 @@ if (isset($_POST['create_mlb_projections_and_contests_button_clicked'])) {
 }
 if (isset($_POST['update_live_mlb_contests_button_clicked'])){
 	
-	$stats_key = '8a0f611eb4fd46b384f9e390a43b5b92'; //'562f123e387a4c2bbb37395741d0a539';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33'; //'562f123e387a4c2bbb37395741d0a539';
 	
 	update_live_mlb_contests($stats_key, false);
 	
@@ -143,7 +143,7 @@ if (isset($_POST['update_live_mlb_contests_button_clicked'])){
 }
 if (isset($_POST['process_finished_mlb_contests_button'])) {
 	
-	$stats_key = '8a0f611eb4fd46b384f9e390a43b5b92'; //'562f123e387a4c2bbb37395741d0a539';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33'; //'562f123e387a4c2bbb37395741d0a539';
 	
 	process_finished_mlb_contests($stats_key);
 	

@@ -1,16 +1,16 @@
 <?php
 
 if ($league === "nhl") {
-	$stats_key = '815cb1bd3a7c4c8db30a5aee76dcf9c0';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 }
 if ($league === "nba") {
-	$stats_key = '7cba61c8edbc4c4486b8b97308c3af08';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 }
 if ($league === "mlb") {
-	$stats_key = '8a0f611eb4fd46b384f9e390a43b5b92';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 }
 if ($league == "nfl") {
-	$stats_key = 'f75cd5d61287488292aa33b77a898aa6';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 }
 
 function process_finish_the_game($stats_key)
