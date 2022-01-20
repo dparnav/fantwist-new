@@ -204,7 +204,7 @@ if ($show_updated_points_message == true) {
 
 if (isset($_POST['create_nfl_projections_and_contests_button_clicked'])) {
 	
-	$projection_key = 'cc1a0c813b9b4267990116eb45c900b9';
+	$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	if (isset($_POST['schedule_id'])) {
 		
@@ -221,7 +221,7 @@ if (isset($_POST['create_nfl_projections_and_contests_button_clicked'])) {
 }
 if (isset($_POST['update_live_nfl_contests_button_clicked'])){
 	
-	$stats_key = 'cc1a0c813b9b4267990116eb45c900b9';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	update_live_nfl_contests($stats_key, false);
 	
@@ -230,7 +230,7 @@ if (isset($_POST['update_live_nfl_contests_button_clicked'])){
 }
 if (isset($_POST['process_finished_nfl_contests_button'])) {
 	
-	$stats_key = 'cc1a0c813b9b4267990116eb45c900b9';
+	$stats_key = '1f84d3da9fcb4f8fb276be1503989a33';
 	
 	process_finished_nfl_contests($stats_key);
 	
