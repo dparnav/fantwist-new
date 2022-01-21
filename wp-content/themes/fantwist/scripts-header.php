@@ -911,17 +911,33 @@
 				$('.wager-line-type, .overunderval1, .overunderval2, .overunderval3, #contestID, #contestDate').remove();
 
 				if (type == 'spread') {
-					spreaddatarotation = $this.data('rotation');
+					// spreaddatarotation = $this.data('rotation');
 
-					$('.select-team-spread .option-select-team').each(function() {
+					// $('.select-team-spread .option-select-team').each(function() {
 
-						var $this1 = $(this);
-						$this1.attr('selected', false);
-						if (team == $this1.attr('name') && wagerGameId == $this1.data('gameid')) {
-							$this1.attr('selected', true);
-						}
+					// 	var $this1 = $(this);
+					// 	$this1.attr('selected', false);
+					// 	if (team == $this1.attr('name') && wagerGameId == $this1.data('gameid')) {
+					// 		$this1.attr('selected', true);
+					// 	}
 
-					});
+					// });
+
+
+						//get team data in popupbet popup in spread
+
+					var spreadname = $this.data('name'),
+						spreadpoints = $this.data('spread'),
+						spreaddatarotation = $this.data('rotation');
+
+						
+
+					$('.select-team-spread').html('<option class="option-select-team" value="' + spreadname + '" name="' + spreaddatarotation + '-' + spreadpoints + '">' + spreaddatarotation + ' - ' + spreadname +  '  ' + Number(spreadpoints).toFixed(2) +'</option>');
+
+
+
+
+
 
 					$('.select-team-spread').addClass('show').attr('disabled', 'disabled');
 

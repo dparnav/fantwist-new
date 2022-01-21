@@ -1011,7 +1011,7 @@ wp_schedule_single_event( strtotime(date('g:ia', current_time( 'timestamp'))), '
 */
 function create_contest_automatically()
 {
-	if (date('H:ia', current_time('timestamp')) >= date('H:ia', strtotime('8:00am')) && date('H:ia', current_time('timestamp')) <= date('H:ia', strtotime('9:00am'))) {
+	// if (date('H:ia', current_time('timestamp')) >= date('H:ia', strtotime('8:00am')) && date('H:ia', current_time('timestamp')) <= date('H:ia', strtotime('9:00am'))) {
 
 		$today_current_date = date('Y-m-d', current_time('timestamp'));
 		$today_league_types = ['nhl', 'nba', 'mlb'];
@@ -1090,7 +1090,7 @@ function create_contest_automatically()
 			wp_set_post_terms($contest_posts->ID, $term_id, 'league');
 			game_details_contest($contest_posts->ID);
 		}
-	}
+	// }
 }
 
 add_action('my_event_to_update_projection', 'create_contest_automatically');
