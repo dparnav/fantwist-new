@@ -572,8 +572,8 @@ $terms = get_terms(array(
                             if ($date_differenece < 0 || $time_differenece < 0) {
                                 $game_started = false;
                                 $projected_or_live = 'Projected Fantasy Points: ';
-                                $status = "Off the Board";
-                                $status_color = "warning";
+                                $status = "Open for Picks";
+                                $status_color = "info";
                             } else {
                                 $game_started = true;
                                 $projected_or_live = 'Live Fantasy Points: ';
