@@ -503,13 +503,13 @@
 			if (betType == 'spread') {
 				betType = 'Spread';
 
-				currentScores = $('.select-team.select-team-spread').find(":selected").attr('data-spread');
+				currentScores = $('.select-team.select-team-spread').find(":selected").attr('name');
 
-				if (Number(currentScores) > 0) {
-					currentScores = "+" + currentScores;
-				}
+				// if (Number(currentScores) > 0) {
+				// 	currentScores = "+" + currentScores;
+				// }
 
-				betDetails = $('.select-team.select-team-spread').find(":selected").attr('name') + ' ' + currentScores;
+				betDetails = $('.select-team.select-team-spread').find(":selected").attr('value') + ' ' + currentScores;
 			}
 			if (betType == 'overunder') {
 				betType = 'Over/Under'
@@ -521,9 +521,9 @@
 
 				currentScores = $('.select-team.select-team-moneyline').find(":selected").attr('data-spread');
 
-				if (Number(currentScores) > 0) {
-					currentScores = "+" + currentScores;
-				}
+				// if (Number(currentScores) > 0) {
+				// 	currentScores = "+" + currentScores;
+				// }
 
 				betDetails = $('.select-team.select-team-moneyline').find(":selected").attr('name') + ' ' + currentScores;
 			}
@@ -928,11 +928,17 @@
 
 					var spreadname = $this.data('name'),
 						spreadpoints = $this.data('spread'),
+						spreadpoints = Number(spreadpoints).toFixed(2),
 						spreaddatarotation = $this.data('rotation');
-
+						if(spreadpoints > 0){
+							spreadpoints = '+'+spreadpoints;
+						}
+						else{
+							spreadpoints = spreadpoints;
+						}
 						
 
-					$('.select-team-spread').html('<option class="option-select-team" value="' + spreadname + '" name="' + spreaddatarotation + '-' + spreadpoints + '">' + spreaddatarotation + ' - ' + spreadname +  '  ' + Number(spreadpoints).toFixed(2) +'</option>');
+					$('.select-team-spread').html('<option class="option-select-team" value="' + spreadname + '" name="' + spreadpoints + '">' + spreaddatarotation + ' - ' + spreadname +  '  ' + spreadpoints +'</option>');
 
 
 
