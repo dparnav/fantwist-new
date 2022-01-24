@@ -23,62 +23,73 @@ if (is_user_logged_in()) {
 		<?php
 
 		//all users data
-		$user = get_user_by('id', 1);
-		$leaders = array();
+		$users = [];
 
-
-		$leader = array();
-		$leader['user_login'] = $user->user_login;
-		$leader['nickname'] = $user->nickname;
-		$leader['balance'] = get_field('account_balance', 'user_' . $user->ID);
-		$leader['ID'] = $user->ID;
-
-		// win results args
-		$win_wager_data_args = array(
-			'post_type'  => 'wager',
-			'author'     =>  $user->ID,
-			'posts_per_page' => 10,
-			'meta_query' => array(
-
-				array(
-					'key' => 'wager_result',
-					'value'   => "Win"
-				)
-			),
-
-		);
-
-		//all results args
-		$total_wager_data_args = array(
-			'post_type'  => 'wager',
-			'author'     =>  $user->ID,
-			'posts_per_page' => 10,
-			'meta_query' => array(
-
-				array(
-					'key' => 'wager_result',
-					'value'   => array("Win", "Loss", "Push"),
-
-				)
-			),
-
-		);
-
-		$win_wager = new WP_Query($win_wager_data_args);
-		$total_wager = new WP_Query($total_wager_data_args);
-
-		$leader['WIN'] = 0;
-		$leader['TOTAL'] = 0;
-		$leader['RESULT'] = 0;
-
-		$leader['WIN'] = $win_wager->post_count;
-		$leader['TOTAL'] = $total_wager->post_count;
-		if ($leader['RESULT'] != 0) {
-
-			$leader['RESULT'] =  ($user['WIN'] / $user['TOTAL'])*100;
+		if(wp_get_current_user()->roles[0] == 'administrator'){
+			//get all users
+			$users = get_users();
+		}else{
+			//get current user
+			array_push($users,get_user_by('id', get_current_user_id()));
 		}
 
-		$leaders[] = $leader;
+		$leaders = array();
+
+		foreach ($users as $user) {
+			$leader = array();
+			$leader['user_login'] = $user->user_login;
+			$leader['nickname'] = $user->nickname;
+			$leader['balance'] = get_field('account_balance', 'user_' . $user->ID);
+			$leader['ID'] = $user->ID;
+	
+			// win results args
+			$win_wager_data_args = array(
+				'post_type'  => 'wager',
+				'author'     =>  $user->ID,
+				'posts_per_page' => 10,
+				'meta_query' => array(
+	
+					array(
+						'key' => 'wager_result',
+						'value'   => "Win"
+					)
+				),
+	
+			);
+			//all results args
+			$total_wager_data_args = array(
+				'post_type'  => 'wager',
+				'author'     =>  $user->ID,
+				'posts_per_page' => 10,
+				'meta_query' => array(
+	
+					array(
+						'key' => 'wager_result',
+						'value'   => array("Win", "Loss", "Push"),
+	
+					)
+				),
+	
+			);
+	
+			$win_wager = new WP_Query($win_wager_data_args);
+			$total_wager = new WP_Query($total_wager_data_args);
+	
+			$leader['WIN'] = 0;
+			$leader['TOTAL'] = 0;
+			$leader['RESULT'] = 0;
+	
+			$leader['WIN'] = $win_wager->post_count;
+			$leader['TOTAL'] = $total_wager->post_count;
+			if ($leader['RESULT'] != 0) {
+	
+				$leader['RESULT'] =  ($user['WIN'] / $user['TOTAL'])*100;
+			}
+	
+			$leaders[] = $leader;
+		}
+
+
 
 		//Sort leaderboard
 		$sort = array();
@@ -100,9 +111,7 @@ if (is_user_logged_in()) {
 			if ($count < $limit) {
 		?>
 
-				<a href="/user/<?php echo $user['user_login']; ?>" class="leaderboard-user table-row <?php if ($current_user_id == $user['ID']) {
-																											echo 'strong';
-																										} ?>">
+				<a href="/user/<?php echo $user['user_login']; ?>" class="leaderboard-user table-row <?= ($current_user_id==$user['ID'])?'strong':''; ?> ">
 
 					<div class="table-cell leaderboard-count">
 						<?php echo $count; ?>
