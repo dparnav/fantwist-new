@@ -1602,7 +1602,7 @@ function game_details_contest($contest_id)
 				$team_1_moneyline = $game->team1->moneyline;
 				$team_2_moneyline = $game->team2->moneyline;
 				$overunder = $game->team1->overunder;
-				$betting_status = 2;
+				$betting_status = 0;
 				$reason_to_close = isset($_REQUEST['reason_to_close']) ? $_REQUEST['reason_to_close'] : "";
 
 				$team_1_spread_previous = $game->team1->spread;
@@ -1610,7 +1610,7 @@ function game_details_contest($contest_id)
 				$team_1_moneyline_previous = $game->team1->moneyline;
 				$team_2_moneyline_previous = $game->team2->moneyline;
 				$overunder_previous = $game->team2->overunder;
-				$betting_status_previous = 2;
+				$betting_status_previous = 0;
 
 				global $current_user;
 				$user_id = $current_user->ID;

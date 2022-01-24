@@ -218,48 +218,48 @@ if (is_user_logged_in()) {
 
 									//remove parlay contests for NFL
 									if ($league_name != "NFL") {
-										$parlay_title = str_replace('Fantasy', 'Parlay', $title);
+										// $parlay_title = str_replace('Fantasy', 'Parlay', $title);
 
-										echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
-											'<a class="table fullwidth" href="' . home_url() . '/contest-parlay/?id=' . $post->ID . '"/">' .
-											'<div class="contest-left contest-logo table-cell middle">' .
-											'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
-											'<div class="contest-type">' . $contest_type_text . '</div>' .
-											'</div>' .
-											'<div class="contest-right contest-details table-cell middle">' .
-											'<div class="contest-title transition">' . $parlay_title . '</div>';
+										// echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
+										// 	'<a class="table fullwidth" href="' . home_url() . '/contest-parlay/?id=' . $post->ID . '"/">' .
+										// 	'<div class="contest-left contest-logo table-cell middle">' .
+										// 	'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
+										// 	'<div class="contest-type">' . $contest_type_text . '</div>' .
+										// 	'</div>' .
+										// 	'<div class="contest-right contest-details table-cell middle">' .
+										// 	'<div class="contest-title transition">' . $parlay_title . '</div>';
 
-										if ($league_name != 'PGA') {
-											echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
-										}
+										// if ($league_name != 'PGA') {
+										// 	echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
+										// }
 
-										echo $status_html .
-											'</div>' .
-											'</a>' .
-											'</div>';
+										// echo $status_html .
+										// 	'</div>' .
+										// 	'</a>' .
+										// 	'</div>';
 									}
 									//remove teaser contests for NFL
 
 									if ($league_name != "NFL") {
-										$parlay_title = str_replace('Fantasy', 'Teaser', $title);
+										// $parlay_title = str_replace('Fantasy', 'Teaser', $title);
 
-										echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
-											'<a class="table fullwidth" href="' . home_url() . '/contest-teaser/?id=' . $post->ID . '"/">' .
-											'<div class="contest-left contest-logo table-cell middle">' .
-											'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
-											'<div class="contest-type">' . $contest_type_text . '</div>' .
-											'</div>' .
-											'<div class="contest-right contest-details table-cell middle">' .
-											'<div class="contest-title transition">' . $parlay_title . '</div>';
+										// echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
+										// 	'<a class="table fullwidth" href="' . home_url() . '/contest-teaser/?id=' . $post->ID . '"/">' .
+										// 	'<div class="contest-left contest-logo table-cell middle">' .
+										// 	'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
+										// 	'<div class="contest-type">' . $contest_type_text . '</div>' .
+										// 	'</div>' .
+										// 	'<div class="contest-right contest-details table-cell middle">' .
+										// 	'<div class="contest-title transition">' . $parlay_title . '</div>';
 
-										if ($league_name != 'PGA') {
-											echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
-										}
+										// if ($league_name != 'PGA') {
+										// 	echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
+										// }
 
-										echo $status_html .
-											'</div>' .
-											'</a>' .
-											'</div>';
+										// echo $status_html .
+										// 	'</div>' .
+										// 	'</a>' .
+										// 	'</div>';
 									}
 								}
 							}
@@ -394,50 +394,50 @@ if (is_user_logged_in()) {
 								'</div>';
 							//remove parlay contests for MLB,NHL,NBA
 							if ($league_name != "MLB" && $league_name != "NHL" && $league_name != "NBA") {
-								$parlay_title = str_replace('Fantasy', 'Parlay', $title);
+								// $parlay_title = str_replace('Fantasy', 'Parlay', $title);
 
-								echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
-									'<a class="table fullwidth" href="' . home_url() . '/contest-parlay/?id=' . $post->ID . '"/">' .
-									'<div class="contest-left contest-logo table-cell middle">' .
-									'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
-									'<div class="contest-type">' . $contest_type_text . '</div>' .
-									'</div>' .
-									'<div class="contest-right contest-details table-cell middle">' .
-									'<div class="contest-title transition">' . $parlay_title . '</div>';
+								// echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
+								// 	'<a class="table fullwidth" href="' . home_url() . '/contest-parlay/?id=' . $post->ID . '"/">' .
+								// 	'<div class="contest-left contest-logo table-cell middle">' .
+								// 	'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
+								// 	'<div class="contest-type">' . $contest_type_text . '</div>' .
+								// 	'</div>' .
+								// 	'<div class="contest-right contest-details table-cell middle">' .
+								// 	'<div class="contest-title transition">' . $parlay_title . '</div>';
 
-								if ($league_name != 'PGA') {
-									echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
-								}
+								// if ($league_name != 'PGA') {
+								// 	echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
+								// }
 
-								echo $status_html .
-									'</div>' .
-									'</a>' .
-									'</div>';
+								// echo $status_html .
+								// 	'</div>' .
+								// 	'</a>' .
+								// 	'</div>';
 							}
 
 							//remove teaser contests for MLB,NHL,NBA
 
 							if ($league_name != "MLB" && $league_name != "NHL" && $league_name != "NBA") {
-								$parlay_title = str_replace('Fantasy', 'Teaser', $title);
+								// $parlay_title = str_replace('Fantasy', 'Teaser', $title);
 
 
-								echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
-									'<a class="table fullwidth" href="' . home_url() . '/contest-teaser/?id=' . $post->ID . '"/">' .
-									'<div class="contest-left contest-logo table-cell middle">' .
-									'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
-									'<div class="contest-type">' . $contest_type_text . '</div>' .
-									'</div>' .
-									'<div class="contest-right contest-details table-cell middle">' .
-									'<div class="contest-title transition">' . $parlay_title . '</div>';
+								// echo '<div class="contest-game contest-status-' . str_replace(' ', '', $contest_type) . ' contest-' . $league_slug . ' ' . $locked . '">' .
+								// 	'<a class="table fullwidth" href="' . home_url() . '/contest-teaser/?id=' . $post->ID . '"/">' .
+								// 	'<div class="contest-left contest-logo table-cell middle">' .
+								// 	'<img src="' . $league_logo . '" alt="' . $league_name . '" />' .
+								// 	'<div class="contest-type">' . $contest_type_text . '</div>' .
+								// 	'</div>' .
+								// 	'<div class="contest-right contest-details table-cell middle">' .
+								// 	'<div class="contest-title transition">' . $parlay_title . '</div>';
 
-								if ($league_name != 'PGA') {
-									echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
-								}
+								// if ($league_name != 'PGA') {
+								// 	echo '<div class="contest-date">' . $contest_date_1 . ' ET</div>';
+								// }
 
-								echo $status_html .
-									'</div>' .
-									'</a>' .
-									'</div>';
+								// echo $status_html .
+								// 	'</div>' .
+								// 	'</a>' .
+								// 	'</div>';
 							}
 						}
 					}
