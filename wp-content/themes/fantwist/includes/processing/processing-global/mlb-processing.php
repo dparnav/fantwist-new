@@ -1170,7 +1170,7 @@ function create_mlb_projections_and_contests($date, $projection_key) {
 					'league' => $tax_league
 				),
 			);
-			
+			require_once ABSPATH . '/wp-admin/includes/post.php';
 			$post_exists = post_exists($league_title . ': Game Lines ' . $the_contest_date_notime);
 					
 			if ($post_exists == 0) {

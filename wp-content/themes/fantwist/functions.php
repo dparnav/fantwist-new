@@ -1013,49 +1013,19 @@ function create_contest_automatically()
 {
 	// if (date('H:ia', current_time('timestamp')) >= date('H:ia', strtotime('8:00am')) && date('H:ia', current_time('timestamp')) <= date('H:ia', strtotime('9:00am'))) {
 
-		$today_current_date = date('Y-m-d', current_time('timestamp'));
-		$today_league_types = ['nhl', 'nba', 'mlb'];
-		foreach ($today_league_types as $today_league_type) {
-			if ($today_league_type == "nhl") {
-				$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
-			}
+	$today_current_date = date('Y-m-d', current_time('timestamp'));
+	$today_league_types = ['nhl', 'nba', 'mlb'];
+	foreach ($today_league_types as $today_league_type) {
+		if ($today_league_type == "nhl") {
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
+		}
 
-			if ($today_league_type == "nba") {
-				$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
-			}
+		if ($today_league_type == "nba") {
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
+		}
 
-			if ($today_league_type == "mlb") {
-				$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
-			}
-
-			$today_args = array(
-				'post_type' => 'contest',
-				'meta_query' => array(
-					array(
-						'key'     => 'contest_date_sort',
-						'value'   => $today_current_date,
-						'compare' => 'LIKE'
-					)
-				),
-				'tax_query' => array(
-					array(
-						'taxonomy' => 'league',
-						'field'    => 'slug',
-						'terms'    => $today_league_type,
-					)
-				),
-				'order'                => 'ASC',
-				'orderby'            => 'meta_value',
-				'meta_key'            => 'contest_date_sort',
-				'meta_type'            => 'DATETIME'
-			);
-			$today_the_query = new WP_Query($today_args);
-			$today_contest_count = $today_the_query->post_count;
-			if ($today_contest_count == 0) {
-				require_once(get_theme_root() . '/fantwist/includes/processing/processing-global/' . $today_league_type . '-processing.php');
-				$create_new_contest = "create_" . $today_league_type . "_projections_and_contests";
-				$create_new_contest($today_current_date, $projection_key);
-			}
+		if ($today_league_type == "mlb") {
+			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
 		}
 
 		$today_args = array(
@@ -1067,31 +1037,63 @@ function create_contest_automatically()
 					'compare' => 'LIKE'
 				)
 			),
+			'tax_query' => array(
+				array(
+					'taxonomy' => 'league',
+					'field'    => 'slug',
+					'terms'    => $today_league_type,
+				)
+			),
 			'order'                => 'ASC',
 			'orderby'            => 'meta_value',
 			'meta_key'            => 'contest_date_sort',
 			'meta_type'            => 'DATETIME'
 		);
-
 		$today_the_query = new WP_Query($today_args);
-		foreach ($today_the_query->posts as $contest_posts) {
-			if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nba") {
-				$term_id = "2";
-			}
-			if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nhl") {
-				$term_id = "3";
-			}
-			if (strtolower(substr($contest_posts->post_title, 0, 3)) == "mlb") {
-				$term_id = "4";
-			}
-			if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nfl") {
-				$term_id = "6";
-			}
-			wp_set_post_terms($contest_posts->ID, $term_id, 'league');
-			game_details_contest($contest_posts->ID);
+		$today_contest_count = $today_the_query->post_count;
+		if ($today_contest_count == 0) {
+			require_once(get_theme_root() . '/fantwist/includes/processing/processing-global/' . $today_league_type . '-processing.php');
+			$create_new_contest = "create_" . $today_league_type . "_projections_and_contests";
+			$create_new_contest($today_current_date, $projection_key);
 		}
-	// }
+	}
+
+	$today_args = array(
+		'post_type' => 'contest',
+		'meta_query' => array(
+			array(
+				'key'     => 'contest_date_sort',
+				'value'   => $today_current_date,
+				'compare' => 'LIKE'
+			)
+		),
+		'order'                => 'ASC',
+		'orderby'            => 'meta_value',
+		'meta_key'            => 'contest_date_sort',
+		'meta_type'            => 'DATETIME'
+	);
+
+	$today_the_query = new WP_Query($today_args);
+
+	foreach ($today_the_query->posts as $contest_posts) {
+	
+		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nba") {
+			$term_id = "2";
+		}
+		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nhl") {
+			$term_id = "3";
+		}
+		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "mlb") {
+			$term_id = "4";
+		}
+		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nfl") {
+			$term_id = "6";
+		}
+		wp_set_post_terms($contest_posts->ID, $term_id, 'league');
+		game_details_contest($contest_posts->ID);
+	}
 }
+
 
 add_action('my_event_to_update_projection', 'create_contest_automatically');
 wp_schedule_single_event(time() + 60,  'my_event_to_update_projection');
@@ -1132,20 +1134,20 @@ function create_contenst_nfl_automatically()
 					require_once(ABSPATH . 'wp-admin/includes/post.php');
 				}
 				require_once(get_theme_root() . '/fantwist/includes/processing/processing-global/nfl-processing.php');
-				create_nfl_projections_and_contests($term->term_id,$projection_key);
+				create_nfl_projections_and_contests($term->term_id, $projection_key);
 
 				$today_args = array(
 					'post_type' => 'contest',
 					'meta_query' => array(
 						array(
 							'key' => 'contest_date_sort',
-							'value' => date('Y-m-d H:i:s',$term_start_date),
+							'value' => date('Y-m-d H:i:s', $term_start_date),
 							'compare' => '>',
 							'type' => 'DATE'
 						),
 						array(
 							'key' => 'contest_date_sort',
-							'value' => date('Y-m-d H:i:s',$term_end_date),
+							'value' => date('Y-m-d H:i:s', $term_end_date),
 							'compare' => '<',
 							'type' => 'DATE'
 						)
@@ -1159,7 +1161,7 @@ function create_contenst_nfl_automatically()
 				foreach ($today_the_query->posts as $contest_posts) {
 					if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nfl") {
 						wp_set_post_terms($contest_posts->ID, "6", 'league');
-						wp_set_post_terms($contest_posts->ID, array($term->parent,$term->term_id), 'schedule');
+						wp_set_post_terms($contest_posts->ID, array($term->parent, $term->term_id), 'schedule');
 						game_details_contest($contest_posts->ID);
 					}
 				}
@@ -1589,8 +1591,7 @@ add_action('wp_head', 'add_account_number_below_name');
 
 function isInteger($number)
 {
-$int_number = (int) $number;
-$number_checker = $number - $int_number;
-return ($number_checker>0)?0:1;
+	$int_number = (int) $number;
+	$number_checker = $number - $int_number;
+	return ($number_checker > 0) ? 0 : 1;
 }
-
