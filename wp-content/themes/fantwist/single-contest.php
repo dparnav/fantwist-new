@@ -1923,7 +1923,7 @@ if (is_user_logged_in()) {
 						}
 
 						$wager_team_1_term = get_term_by('id', $wager_team_id, 'team');
-						$wager_team_1_name = $wager_team_1_term->name;
+						$wager_team_1_name = $wager_team_id;
 						$wager_amount = 0;
 
 						$winnings = ($wager_amount * 0.9090909090909092) * 2 / 2;
@@ -3061,7 +3061,7 @@ if ($nfl_main_contest != '') {
 
 						?>
 
-							<div class="popupbet section-left bet-ticket-sidebar transition">
+							<div class="popupbet section-left bet-ticket-sidebar transition" style="display: none;">
 
 								<div class="bet-ticket-close">
 									<i class="fas fa-times"></i>
@@ -5144,6 +5144,7 @@ if ($_GET['bet'] == '1') {
 	jQuery(document).ready(function() {
 
 		//add active on the wager button when clicked
+		jQuery('.confirmationPopupBox').hide();
 		jQuery('.team-vs-team-bet').on('click', function() {
 			// if(!jQuery('.team-vs-team-bet').hasClass('active')){
 
@@ -5162,6 +5163,7 @@ if ($_GET['bet'] == '1') {
 <script>
 	//ajax call to check the current point
 	jQuery(document).on('click', '.team-vs-team-bet', function() {
+		
 		$this = jQuery(this);
 		let details = {
 			contestID: <?= $post->ID ?>,
@@ -5178,6 +5180,7 @@ if ($_GET['bet'] == '1') {
 
 	jQuery(document).on('click', '.contest-teamvsteam-cell', function() {
 		jQuery('.popupbet').hide();
+		
 	})
 
 
@@ -5240,6 +5243,7 @@ if ($_GET['bet'] == '1') {
 
 				// Jquery for error message,when selecting more than one bet
 				if (output > 0) {
+					jQuery('#confirmationPopupBox').fadeOut(1);
 					Toastify({
 						text: "Sorry, you have already placed this bet",
 						duration: 2000,
@@ -5252,9 +5256,12 @@ if ($_GET['bet'] == '1') {
 						},
 						onClick: function() {} // Callback after click
 					}).showToast();
+
 				} else {
+					jQuery('#confirmationPopupBox').fadeIn(100);
 					jQuery('.ajax-error').hide();
-					jQuery('.popupbet').fadeIn();
+
+					// jQuery('.popupbet').fadeout();
 
 				}
 				// if (Object.keys(newData).length !== 0) {

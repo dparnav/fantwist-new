@@ -489,15 +489,16 @@
 
 		});
 
-		$('.submit-bet').click(function(e) {
+		jQuery('.team-vs-team-bet').click(function(e) {
+		jQuery('.confirmationPopupBox').fadeOut();
 
 			e.preventDefault();
 
 
 			//set variables
+			var $this = $(this);
 			var contestTitle = $(".inner-wrap h1").text();
-			var betAmount = '$' + $("input[name*='wager-amount']").val() + '</strong> ' + $(".total-winnings-proj.show").html();
-			var betType = $("input[name*='wager-line-type']").val();
+			var betType = $this.data('select');
 			var betDetails = '';
 			var betRotation = $this.data('rotation');
 			if (betType == 'spread') {
@@ -509,11 +510,11 @@
 				// 	currentScores = "+" + currentScores;
 				// }
 
-				betDetails = $('.select-team.select-team-spread').find(":selected").attr('value');
+				betDetails = $this.data('name')+' '+$this.data('spread');
 			}
 			if (betType == 'overunder') {
 				betType = 'Over/Under'
-				betDetails = $('.select-team.select-team-overunder').find(":selected").attr('value');
+				betDetails = $this.data('overundertext');
 				// betDetails = $('.select-team.select-team-overunder option').attr('name');
 			}
 			if (betType == 'moneyline') {
@@ -532,8 +533,8 @@
 			// $('#popupBetAmout').html('<div class="bet-title-popup">Wager Amount: </div><div class="bet-value-popup"><strong>'+betAmount+'</strong></div>');
 			$('#popupBetType').html('<div class="bet-title-popup">Wager Type: </div><div class="bet-value-popup"><strong>' + betType + '</strong></div>');
 			$('#popupBetDetails').html('<div class="bet-title-popup">Wager Details: </div><div class="bet-value-popup">' + betRotation + ' - ' + betDetails + '</div>');
-			$('#confirmationPopupBox').fadeIn();
-
+			// $('#confirmationPopupBox').fadeIn();
+		
 		});
 
 		$('#btnYesConfirmYesNo').click(function() {
