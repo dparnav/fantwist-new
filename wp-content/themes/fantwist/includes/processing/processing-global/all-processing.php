@@ -358,7 +358,7 @@ function process_finish_the_game($stats_key)
 									}
 
 									$current_wager_data['points_type'] = $wager_type;
-									$current_wager_data['point_spread'] = get_field($point_type, $wager_id);
+									$current_wager_data['point_spread'] = get_field('point_spread', $wager_id);
 
 									//args
 									$args = array(

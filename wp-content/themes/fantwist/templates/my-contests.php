@@ -98,7 +98,7 @@ foreach ($fantasy_wager_data_query->posts as $post) {
 
 		$team_name_and_points = get_field('wager_winner_1_name', $post->ID);
 		if ($wager_type != 'Over/Under') {
-			$team_name_and_points = (get_field($point_type, $post->ID) > 0) ? $current_team->name . ' (+' . get_field($point_type, $post->ID) . ')' : $current_team->name . ' (' . get_field($point_type, $post->ID) . ')';
+			$team_name_and_points = (get_field($point_type, $post->ID) > 0) ? $current_team->name . ' (' . get_field($point_type, $post->ID) . ')' : $current_team->name . ' (' . get_field($point_type, $post->ID) . ')';
 		}
 
 		$current_wager_data['team_name'] = array(array('name' => get_field('wager_rotation', $post->ID) . ' - ' . $team_name_and_points, 'push' => 'off'));

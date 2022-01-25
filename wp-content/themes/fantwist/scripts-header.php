@@ -509,7 +509,7 @@
 				// 	currentScores = "+" + currentScores;
 				// }
 
-				betDetails = $('.select-team.select-team-spread').find(":selected").attr('value') + ' ' + currentScores;
+				betDetails = $('.select-team.select-team-spread').find(":selected").attr('value');
 			}
 			if (betType == 'overunder') {
 				betType = 'Over/Under'
@@ -938,7 +938,7 @@
 						}
 						
 
-					$('.select-team-spread').html('<option class="option-select-team" value="' + spreadname + '" name="' + spreadpoints + '">' + spreaddatarotation + ' - ' + spreadname +  '  ' + spreadpoints +'</option>');
+					$('.select-team-spread').html('<option class="option-select-team" value="' + spreadname+'  '+spreadpoints+ '" name="' + spreadpoints + '">' + spreaddatarotation + ' - ' + spreadname +  '  ' + spreadpoints +'</option>');
 
 
 

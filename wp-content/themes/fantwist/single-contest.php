@@ -1911,15 +1911,15 @@ if (is_user_logged_in()) {
 						$overunder_rotation = $_POST['rotation'];
 						$wager_game_id = $_POST['wager-game-id'];
 
-						$arr = explode('_', $wager_team);
+						$arr = explode('  ', $wager_team);
 						$wager_team_id = $arr[0];
 						$spread = $arr[1];
 
-						if ($spread > 0) {
-							$spread_plus_minus = '+';
-						} else {
-							$spread_plus_minus = '';
-						}
+						// if ($spread > 0) {
+						// 	$spread_plus_minus = '+';
+						// } else {
+						// 	$spread_plus_minus = '';
+						// }
 
 						$wager_team_1_term = get_term_by('id', $wager_team_id, 'team');
 						$wager_team_1_name = $wager_team_1_term->name;
@@ -1966,7 +1966,7 @@ if (is_user_logged_in()) {
 						// single selection wager type
 						$args_2 = array(
 							'post_type' => 'wager',
-							'posts_per_page' => 10,
+							'posts_per_page' => -1,
 							'post_status' => 'publish',
 							// 'tax_input'		=> array(
 							// 	'wager_type' => array(
