@@ -1915,11 +1915,12 @@ if (is_user_logged_in()) {
 						$wager_team_id = $arr[0];
 						$spread = $arr[1];
 
-						// if ($spread > 0) {
-						// 	$spread_plus_minus = '+';
-						// } else {
-						// 	$spread_plus_minus = '';
-						// }
+						if ($spread > 0) {
+							$spread = explode('+',$spread);
+							$spread = $spread[1];
+						} else {
+							$spread = $spread;
+						}
 
 						$wager_team_1_term = get_term_by('id', $wager_team_id, 'team');
 						$wager_team_1_name = $wager_team_1_term->name;
