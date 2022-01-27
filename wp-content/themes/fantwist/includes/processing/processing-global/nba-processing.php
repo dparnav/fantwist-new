@@ -950,8 +950,8 @@ function create_nba_projections_and_contests($date, $projection_key) {
 			$post_exists = post_exists($league_title . ': Game Lines ' . $the_contest_date_notime);
 					
 			if ($post_exists == 0) {
-				wp_insert_post( $teams_contest );
-				$contests_created++;
+				return wp_insert_post( $teams_contest );
+				// $contests_created++;
 			}
 		}
 
@@ -1302,11 +1302,13 @@ function update_nba_live_scores($stats_key) {
 	);
 	
 	$update_query = new WP_Query( $update_args );
-
+	
 	foreach($update_query->posts as $updatepost){
+		
 		$current_contest_date = get_field('contest_date',$updatepost->ID);
 
 		if($current_contest_date <= current_time( 'timestamp')){
+			
 			$date = date('Y-M-d',$current_contest_date);
 
 			//Get player stats via SportsDataIO API
@@ -1482,7 +1484,56 @@ function update_nba_live_scores($stats_key) {
 				foreach($game_data as $game){
 					if(!$game['is_game_over'] && $game['is_game_over'] != "canceled"){
 						$game_done = "Not Done";
+						
 					}
+					// settled bidding status in gamedetails when game is over.
+				// 	elseif($game['is_game_over']){
+
+				// 		$update_done_args = array(
+				// 			'post_type' => 'contest',
+				// 			'posts_per_page' => -1,
+				// 			'meta_query' => array(
+				// 				array(
+				// 					'key'     => 'games_status',
+				// 					'value'   => "Done"
+				// 				)
+				// 			),
+				// 			'tax_query' => array(
+				// 				array(
+				// 					'taxonomy' => 'league',
+				// 					'field'    => 'slug',
+				// 					'terms'    => strtolower($league_title)
+				// 				)
+				// 			),
+				// 		);
+						
+				// 		$update_query = new WP_Query( $update_done_args );
+					
+				// 		foreach($update_query->posts as $updatepost){
+
+
+				// 		$game_details_query = new WP_Query(array(
+				// 			'post_type'  => 'gamedeatils',
+				// 			'meta_query' => array(
+				// 				array(
+				// 					'key'     => 'contest_id',
+				// 					'value'   => $updatepost->ID,
+				// 				),
+				// 				array(
+				// 					'key' => 'game_id',
+				// 					'value'   =>$game['game_id']
+				// 				),
+				// 			),
+				// 		));
+				// 	print_r($game_details_query);
+				// 		$current_contest_id = $game_details_query->posts[0]->ID;
+				// 		// $bidding_status_settled = $bidding_status['bidding_status'][0];
+					
+
+				// 			// update_field('bidding_status', 3 , $current_contest_id);
+						
+				// 	}
+				// }
 				}
 
 				if($game_done == "Done"){					

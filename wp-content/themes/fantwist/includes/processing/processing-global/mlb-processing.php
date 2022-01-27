@@ -1174,8 +1174,8 @@ function create_mlb_projections_and_contests($date, $projection_key) {
 			$post_exists = post_exists($league_title . ': Game Lines ' . $the_contest_date_notime);
 					
 			if ($post_exists == 0) {
-				wp_insert_post( $teams_contest );
-				$contests_created++;
+				return wp_insert_post( $teams_contest );
+				// $contests_created++;
 			}
 		}
 

@@ -1015,6 +1015,7 @@ function create_contest_automatically()
 
 	$today_current_date = date('Y-m-d', current_time('timestamp'));
 	$today_league_types = ['nhl', 'nba', 'mlb'];
+	$new_contest_id = '';
 	foreach ($today_league_types as $today_league_type) {
 		if ($today_league_type == "nhl") {
 			$projection_key = '1f84d3da9fcb4f8fb276be1503989a33';
@@ -1054,49 +1055,30 @@ function create_contest_automatically()
 		if ($today_contest_count == 0) {
 			require_once(get_theme_root() . '/fantwist/includes/processing/processing-global/' . $today_league_type . '-processing.php');
 			$create_new_contest = "create_" . $today_league_type . "_projections_and_contests";
-			$create_new_contest($today_current_date, $projection_key);
+			$new_contest_id = $create_new_contest($today_current_date, $projection_key);
+		
+			if (($today_league_type) === "nba") {
+				$term_id = "2";
+			}
+			if (($today_league_type) === "nhl") {
+				$term_id = "3";
+			}
+			if (($today_league_type) === "mlb") {
+				$term_id = "4";
+			}
+			if (($today_league_type) === "nfl") {
+				$term_id = "6";
+			}
+			wp_set_post_terms($new_contest_id, $term_id, 'league');
+			game_details_contest($new_contest_id);
 		}
 	}
-
-	$today_args = array(
-		'post_type' => 'contest',
-		'meta_query' => array(
-			array(
-				'key'     => 'contest_date_sort',
-				'value'   => $today_current_date,
-				'compare' => 'LIKE'
-			)
-		),
-		'order'                => 'ASC',
-		'orderby'            => 'meta_value',
-		'meta_key'            => 'contest_date_sort',
-		'meta_type'            => 'DATETIME'
-	);
-
-	$today_the_query = new WP_Query($today_args);
-
-	foreach ($today_the_query->posts as $contest_posts) {
 	
-		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nba") {
-			$term_id = "2";
-		}
-		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nhl") {
-			$term_id = "3";
-		}
-		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "mlb") {
-			$term_id = "4";
-		}
-		if (strtolower(substr($contest_posts->post_title, 0, 3)) == "nfl") {
-			$term_id = "6";
-		}
-		wp_set_post_terms($contest_posts->ID, $term_id, 'league');
-		game_details_contest($contest_posts->ID);
-	}
 }
 
 
 add_action('my_event_to_update_projection', 'create_contest_automatically');
-wp_schedule_single_event(time() + 60,  'my_event_to_update_projection');
+wp_schedule_single_event(time() + 30,  'my_event_to_update_projection');
 
 /* NFL contest create and projection update */
 

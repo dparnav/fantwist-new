@@ -2314,6 +2314,14 @@ function get_current_scores()
 }
 
 //ajax function call
+
+if (is_user_logged_in()) {
+
+	$current_user = wp_get_current_user();
+	$user_id = $current_user->ID;
+	$username = $current_user->user_login;
+	$current_user_id = $current_user->ID;
+
 if (isset($_POST['type']) && !empty($_POST['type'])) {
 	//set variables
 	$game_id = $_POST['game_id'];
@@ -2339,7 +2347,8 @@ if (isset($_POST['type']) && !empty($_POST['type'])) {
 					'value' => $game_id,
 
 				),
-			)
+			),
+			'author' => $current_user_id,
 		);
 		$the_query2 = new WP_Query($args_2);
 		$wager_post_count = $the_query2->post_count;
@@ -2363,7 +2372,8 @@ if (isset($_POST['type']) && !empty($_POST['type'])) {
 					'value' => $game_id,
 
 				),
-			)
+			),
+			'author' => $current_user_id,
 		);
 		$the_query2 = new WP_Query($args_2);
 		$wager_post_count = $the_query2->post_count;
@@ -2372,7 +2382,7 @@ if (isset($_POST['type']) && !empty($_POST['type'])) {
 	echo ($wager_post_count);
 	exit;
 }
-
+}
 
 //ajax for single wager contest
 
@@ -3335,7 +3345,7 @@ if ($nfl_main_contest != '') {
 								</div>
 								<div class="confirmation-popup-box-footer">
 									<div>
-										Do you accept this bet?
+										Are you sure you want to make this pick?
 									</div>
 									<button id="btnYesConfirmYesNo" type="button">Yes</button>
 									<button id="btnNoConfirmYesNo" type="button">No</button>

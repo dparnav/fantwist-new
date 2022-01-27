@@ -1068,8 +1068,8 @@ function create_nhl_projections_and_contests($date, $projection_key) {
 			$post_exists = post_exists($league_title . ': Game Lines ' . $the_contest_date_notime);
 					
 			if ($post_exists == 0) {
-				wp_insert_post( $teams_contest );
-				$contests_created++;
+				return wp_insert_post( $teams_contest );
+				// $contests_created++;
 			}
 		}
 
@@ -1601,6 +1601,26 @@ function update_nhl_live_scores($stats_key) {
 					if(!$game['is_game_over'] && $game['is_game_over'] != "canceled"){
 						$game_done = "Not Done";
 					}
+					// settled bidding status in gamedetails when game is over.
+					// else{
+					// 	$game_details_query = new WP_Query(array(
+					// 		'post_type'  => 'gamedeatils',
+					// 		'meta_query' => array(
+					// 			array(
+					// 				'key'     => 'contest_id',
+					// 				'value'   => $updatepost->ID,
+					// 			),
+					// 			array(
+					// 				'key' => 'game_id',
+					// 				'value'   => $game['game_id']
+					// 			),
+					// 		),
+					// 	));
+					
+					// 	$current_contest_id = $game_details_query->posts[0]->ID;
+					// 	// $bidding_status_settled = $bidding_status['bidding_status'][0];
+					// 	update_field('bidding_status', 3 , $current_contest_id);
+					// }
 				}
 
 				if($game_done == "Done"){					

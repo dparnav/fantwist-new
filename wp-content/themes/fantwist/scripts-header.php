@@ -531,8 +531,8 @@
 
 			$('.confirmation-popup-box-title').html(contestTitle);
 			// $('#popupBetAmout').html('<div class="bet-title-popup">Wager Amount: </div><div class="bet-value-popup"><strong>'+betAmount+'</strong></div>');
-			$('#popupBetType').html('<div class="bet-title-popup">Wager Type: </div><div class="bet-value-popup"><strong>' + betType + '</strong></div>');
-			$('#popupBetDetails').html('<div class="bet-title-popup">Wager Details: </div><div class="bet-value-popup">' + betRotation + ' - ' + betDetails + '</div>');
+			$('#popupBetType').html('<div class="bet-title-popup">Picks Type: </div><div class="bet-value-popup"><strong>' + betType + '</strong></div>');
+			$('#popupBetDetails').html('<div class="bet-title-popup">Picks Details: </div><div class="bet-value-popup">' + betRotation + ' - ' + betDetails + '</div>');
 			// $('#confirmationPopupBox').fadeIn();
 		
 		});
