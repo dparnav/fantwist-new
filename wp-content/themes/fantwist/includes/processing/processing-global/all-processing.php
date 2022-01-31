@@ -57,10 +57,10 @@ function process_finish_the_game($stats_key)
 		$contest_id = $post_id;
 	}
 
-	if ($league != "nfl") {
-		$update_this_contest_live_scores = "update_" . $league . "_live_scores";
-		$update_this_contest_live_scores($stats_key);
-	}
+	// if ($league != "nfl") {
+	// 	$update_this_contest_live_scores = "update_" . $league . "_live_scores";
+	// 	$update_this_contest_live_scores($stats_key);
+	// }
 
 	$data = json_decode(get_field('contest_results', $contest_id), false, JSON_UNESCAPED_UNICODE);
 
@@ -74,48 +74,55 @@ function process_finish_the_game($stats_key)
 		}
 
 		if ($isComplete == true) {
-
 			update_post_meta($postData->ID, 'bidding_status', 3);
 
 			global $current_user;
 			$user_id = $current_user->ID;
 
 			//audit added
-			wp_insert_post(array(
-				'post_author' => $user_id,
-				'post_title' => 'Contest - ' . $processing_contest_id . " - game - " . $processing_game_id,
-				'post_type' => 'gameaudit',
-				'post_status' => 'publish',
-				'meta_input' => array(
-					'contest_id' => $processing_contest_id,
-					'game_id' => $processing_game_id,
-					'updated_value_betting_status' => 3
-				),
-			));
+			// wp_insert_post(array(
+			// 	'post_author' => $user_id,
+			// 	'post_title' => 'Contest - ' . $processing_contest_id . " - game - " . $processing_game_id,
+			// 	'post_type' => 'gameaudit',
+			// 	'post_status' => 'publish',
+			// 	'meta_input' => array(
+			// 		'contest_id' => $processing_contest_id,
+			// 		'game_id' => $processing_game_id,
+			// 		'updated_value_betting_status' => 3
+			// 	),
+			// ));
 
 			$continue = true;
 		}
 	}
+	// echo "hello";
 
-	if ($continue == true) {
+	// if ($continue == true) {
 
 		// Retrieve Finished contests and calculate winners
 
 		$wager_count = 0;
 
 		$args = array(
-			'post_type' => 'contest',
+			'post_type' => 'wager',
 			'posts_per_page' => -1,
+			'meta_query' => array(
+				array(
+					'key'     => 'wager_result',
+					'value'   => 'Open',
+				),
+			),
 			'tax_query' => array(
 				array(
-					'taxonomy' => 'league',
+					'taxonomy' => 'wager_result',
 					'field'    => 'slug',
-					'terms'    => $league,
+					'terms'    => 'open',
 				),
 			),
 		);
 
 		$the_query = new WP_Query($args);
+		// print_r($the_query);
 
 		if ($the_query->have_posts()) {
 
@@ -123,27 +130,50 @@ function process_finish_the_game($stats_key)
 
 				$the_query->the_post();
 				global $post;
+				$contest_id = get_field('wager_contest', $post->ID);
+				$current_game_id = get_field('wager_game_id', $post->ID);
 
-				if (date('Y-M-d', strtotime($game_date_time)) == date('Y-M-d', get_field('contest_date'))) {
+			//when game is settled
+			$bidding_status = [];
+			$bidding_status_settled = '';
+			
+				$game_details_query = new WP_Query(array(
+					'post_type'  => 'gamedeatils',
+					'meta_query' => array(
+						array(
+							'key'     => 'contest_id',
+							'value'   => $contest_id,
+						),
+						array(
+							'key' => 'game_id',
+							'value'   => $current_game_id
+						),
+					),
+				));
+
+				$bidding_status =  get_post_meta($game_details_query->posts[0]->ID);
+				$bidding_status_settled = $bidding_status['bidding_status'][0];
+			
+				// if (date('Y-M-d', strtotime($game_date_time)) == date('Y-M-d', get_field('contest_date'))) {
 
 					//if this is not main contest then find and calculate the main contest
-					$nfl_main_contest = get_field('nfl_main_contest', $post->ID);
-					if ($nfl_main_contest != '') {
-						$post = get_post($nfl_main_contest);
-					}
+					// $nfl_main_contest = get_field('nfl_main_contest', $post->ID);
+					// if ($nfl_main_contest != '') {
+					// 	$post = get_post($nfl_main_contest);
+					// }
 
-					$contest_id = $post->ID;
+					// $contest_id = $post->ID;
 
-					if ($league == "nfl") {
-						$contest_id = $post_id;
-					}
+					// if ($league == "nfl") {
+					// 	$contest_id = $post_id;
+					// }
+					
 
-
-					$contest_type = get_field('contest_type', $contest_id);
+					// $contest_type = get_field('contest_type', $contest_id);
 					$contest_results = json_decode(get_field('contest_results', $contest_id), false, JSON_UNESCAPED_UNICODE);
 					$team_category = ['team1', 'team2'];
-
-					if ($contest_type == 'Team vs Team') {
+				
+					// if ($contest_type == 'Team vs Team') {
 
 						// Retrieve wagers for each contest, and check for winners
 
@@ -167,36 +197,40 @@ function process_finish_the_game($stats_key)
 							),
 						);
 
-						$the_wager = new WP_Query($args);
+						// $the_wager = new WP_Query($args);
 
 
 
+						// if ($the_wager->have_posts()) {
 
-						if ($the_wager->have_posts()) {
+						// 	while ($the_wager->have_posts()) {
 
-							while ($the_wager->have_posts()) {
+								// $the_wager->the_post();
 
-								$the_wager->the_post();
-
+								if (!empty($contest_results) && $bidding_status_settled == 3) {
 
 
 
 								$wager_id = get_the_id();
+								
 
 								//current user details
 								$current_user = wp_get_current_user();
 								$user_id = $current_user->ID;
 								$username = $current_user->user_login;
+							
 								//wager amount
 								$wager_amount = get_field('wager_amount', $wager_id);
 
-
+							
 
 								$winnings = get_field('potential_winnings', $wager_id);
 								//terms data
 								$wager_type = get_the_terms($wager_id, 'wager_type');
 								$wager_type = $wager_type[0]->name;
+							
 								$league = get_the_terms($wager_id, 'league');
+							
 								$league_id = $league[0]->term_id;
 
 								// $wager_result = get_the_terms($wager_id, 'wager_result');
@@ -209,20 +243,22 @@ function process_finish_the_game($stats_key)
 
 									// For each wager, get winner and spread
 
-									$winner = get_field('wager_winner_1', $wager_id);
+									$winner = get_field('wager_team_id', $wager_id);
 									$spread = get_field('point_spread', $wager_id);
-
+									$current_game_id = get_field('wager_game_id', $wager_id);
+								
+									
+								
 
 									// Loop through contest results to find contest
-
+								
 									foreach ($contest_results as $game) {
-
+									
 										foreach ($team_category as $team_cat1) {
-
+										
 											$team = $game->$team_cat1;
-
-											if ($team->term_id == $winner && $game->game_id == $processing_game_id) {
-
+										
+											if ($team->term_id == $winner && $game->game_id == $current_game_id) {
 												// Get total points for wagered winner
 
 												$total_points_winner = $team->total_points;
@@ -236,7 +272,7 @@ function process_finish_the_game($stats_key)
 
 													$team = $game->$team_cat2;
 
-													if ($team->team_abbrev == $opponent && $game->game_id == $processing_game_id) {
+													if ($team->team_abbrev == $opponent && $game->game_id == $current_game_id) {
 
 														$total_points_loser = $team->total_points;
 													}
@@ -250,7 +286,7 @@ function process_finish_the_game($stats_key)
 									$win = false;
 									$push = false;
 									$difference = 0;
-
+							
 									if ($total_points_loser == 0 && $total_points_winner == 0) {
 
 										$push = true;
@@ -261,7 +297,7 @@ function process_finish_the_game($stats_key)
 											// Underdog
 
 											$difference = $total_points_winner - $total_points_loser;
-
+										
 											if ($total_points_winner > $total_points_loser) {
 
 												$win = true;
@@ -325,7 +361,7 @@ function process_finish_the_game($stats_key)
 										$total_equity = $total_equity - $wager_amount;
 									}
 									//insert data in wagers without wager amount
-
+								
 									$current_wager_data = array();
 									$wager_type = get_field('wager_type', $wager_id);
 									$current_wager_data['wager_post_id'] = get_the_id();
@@ -391,6 +427,7 @@ function process_finish_the_game($stats_key)
 										}
 									}
 									$wager_count++;
+								
 								} else if ($wager_type == 'Moneyline') {
 
 
@@ -680,6 +717,7 @@ function process_finish_the_game($stats_key)
 										),
 										'meta_input' => $current_wager_data,
 									);
+									
 									require_once ABSPATH . '/wp-admin/includes/post.php';
 									$post_exists = post_exists($contest_type . ' - ' . str_replace('-', ' ', $wager_type) . ' - bet ' . $wager_amount . ' to win ' . number_format($winnings, 2) . ' for - ' . $wager_id);
 									if ($post_exists <= 1) {
@@ -694,14 +732,15 @@ function process_finish_the_game($stats_key)
 									$wager_count++;
 								}
 
-								sleep(1);
 							}
-						}
-					}
-				}
+								sleep(1);
+						// 	}
+						// }
+					// }
+				// }
 			}
 		}
-	}
+	
 }
 
 function finish_game_for_parlay_wagers()

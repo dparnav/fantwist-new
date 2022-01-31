@@ -46,7 +46,7 @@ if (is_user_logged_in()) {
 			$win_wager_data_args = array(
 				'post_type'  => 'wager',
 				'author'     =>  $user->ID,
-				'posts_per_page' => 10,
+				'posts_per_page' => -1,
 				'meta_query' => array(
 	
 					array(
@@ -60,7 +60,7 @@ if (is_user_logged_in()) {
 			$total_wager_data_args = array(
 				'post_type'  => 'wager',
 				'author'     =>  $user->ID,
-				'posts_per_page' => 10,
+				'posts_per_page' => -1,
 				'meta_query' => array(
 	
 					array(

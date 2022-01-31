@@ -1206,7 +1206,11 @@ function update_contest_live_scores()
 		}
 
 		$update_live_scores = "update_" . $today_league_type . "_live_scores";
+		require_once './wp-content/themes/fantwist/includes/processing/processing-global/all-processing.php';
+require_once './wp-content/themes/fantwist/includes/processing/processing-global/'.$today_league_type.'-processing.php';
 		$update_live_scores($stats_key);
+	// process_finish_the_game('1f84d3da9fcb4f8fb276be1503989a33');
+
 	}
 }
 
@@ -1235,6 +1239,7 @@ function cron_job_to_finish_parlay_teaser_wager()
 	require_once(get_theme_root() . '/fantwist/includes/processing/processing-global/all-processing.php');
 	finish_game_for_parlay_wagers();
 	finish_game_for_teaser_wagers();
+	process_finish_the_game('1f84d3da9fcb4f8fb276be1503989a33');
 }
 
 add_action('event_to_finish_parlay_teaser_wager', 'cron_job_to_finish_parlay_teaser_wager');

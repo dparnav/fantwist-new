@@ -21,8 +21,8 @@ if (is_user_logged_in()) {
 <div class="page-hero my-contests-hero" style="background-image:url(<?php echo get_the_post_thumbnail_url($post->ID, 'full'); ?>)">
 	<div class="hero-details centered-vertical noselect">
 		<div class="inner-wrap">
-			<h1><?= get_the_title(); ?></h1>
-			<h2><?= get_field('my_contests_h2', $post->ID); ?></h2>
+			<h1> MY PICKS </h1>
+			<h2>View your picks.Are you a winner?</h2>
 			<a class="leaderboard-btn" href="<?= get_home_url(); ?>/leaderboard/">View Leaderboard</a>
 		</div>
 	</div>

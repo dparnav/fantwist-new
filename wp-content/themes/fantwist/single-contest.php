@@ -3763,10 +3763,10 @@ if ($nfl_main_contest != '') {
 
 						if ($wager_count > 0) {
 
-							echo '<div class="your-wagers noselect"><i class="fas fa-angle-right"></i> &nbsp;&nbsp;You ' . $have . 'placed ' . $wager_count . ' wager' . $s . ' on this contest. ' . $showAll . ' <div class="wager-list">' . $wager_list_html . '</div></div>';
+							echo '<div class="your-wagers noselect"><i class="fas fa-angle-right"></i> &nbsp;&nbsp;You ' . $have . 'placed ' . $wager_count . ' pick' . $s . ' on this contest. ' . $showAll . ' <div class="wager-list">' . $wager_list_html . '</div></div>';
 						} else {
 
-							echo '<div class="your-wagers noselect"><i class="fas fa-angle-right"></i> &nbsp;&nbsp;You ' . $have . 'placed ' . $wager_count . ' wager' . $s . ' on this contest. ' . $showAll . '</div>';
+							echo '<div class="your-wagers noselect"><i class="fas fa-angle-right"></i> &nbsp;&nbsp;You ' . $have . 'placed ' . $wager_count . ' pick' . $s . ' on this contest. ' . $showAll . '</div>';
 						}
 
 
@@ -5252,10 +5252,10 @@ if ($_GET['bet'] == '1') {
 				let newData = JSON.parse(output);
 
 				// Jquery for error message,when selecting more than one bet
-				if (output > 0) {
+				if (output > 0 && type == 'spread') {
 					jQuery('#confirmationPopupBox').fadeOut(1);
 					Toastify({
-						text: "Sorry, you have already placed this bet",
+						text: "You have already made a Point Spread pic for this game.",
 						duration: 2000,
 						close: true,
 						gravity: "top", // `top` or `bottom`
@@ -5267,7 +5267,24 @@ if ($_GET['bet'] == '1') {
 						onClick: function() {} // Callback after click
 					}).showToast();
 
-				} else {
+				}
+				else if (output > 0 && type == 'overunder') {
+					jQuery('#confirmationPopupBox').fadeOut(1);
+					Toastify({
+						text: "You have already made a Over/Under pic for this game.",
+						duration: 2000,
+						close: true,
+						gravity: "top", // `top` or `bottom`
+						position: "right", // `left`, `center` or `right`
+						stopOnFocus: true, // Prevents dismissing of toast on hover
+						style: {
+							background: "linear-gradient(to right, #31BC5F, #31BC5F)",
+						},
+						onClick: function() {} // Callback after click
+					}).showToast();
+
+				}
+				else {
 					jQuery('#confirmationPopupBox').fadeIn(100);
 					jQuery('.ajax-error').hide();
 

@@ -22,30 +22,7 @@ if (is_user_logged_in()) {
 }
 ?>
 
-<?php get_header();
-require_once './wp-content/themes/fantwist/includes/processing/processing-global/nhl-processing.php';
-echo update_nba_live_scores('1f84d3da9fcb4f8fb276be1503989a33');
-
-// $the_query = new WP_Query(array(
-// 	'post_type'  => 'gamedeatils',
-// 	'meta_query' => array(
-// 		array(
-// 			'key'     => 'contest_id',
-// 			'value'   => 102609,
-// 		),
-// 		array(
-// 			'key' => 'game_id',
-// 			'value'   => 20017424
-// 		),
-// 	),
-// ));
-// $bidding_status = get_post_meta($the_query->posts[0]->ID);
-// $bidding_status_settled = $bidding_status['bidding_status'];
-// $aa = update_field('bidding_status', 3 , $the_query->posts[0]->ID);
-// echo "hello";
-//  print_r($bidding_status_settled[0]);
-
-?>
+<?php get_header(); ?>
 
 <div class="page-hero lobby-hero score-board-hero" style="background-image:url(<?php echo get_the_post_thumbnail_url($post->ID, 'full'); ?>)">
 	<div class="hero-details centered-vertical noselect">

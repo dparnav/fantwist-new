@@ -1529,6 +1529,8 @@ function update_mlb_live_scores($stats_key) {
 	$update_query = new WP_Query( $update_args );
 
 	foreach($update_query->posts as $updatepost){
+		echo game_details_contest($updatepost->ID);
+
 		$current_contest_date = get_field('contest_date',$updatepost->ID);
 
 		if($current_contest_date <= current_time( 'timestamp')){
@@ -1705,6 +1707,27 @@ function update_mlb_live_scores($stats_key) {
 					if(!$game['is_game_over'] && $game['is_game_over'] != "canceled"){
 						$game_done = "Not Done";
 					}
+						// settled bidding status in gamedetails when game is over.
+						elseif($game['is_game_over']){
+					$game_details_query = new WP_Query(array(
+						'post_type'  => 'gamedeatils',
+						'meta_query' => array(
+							array(
+								'key'     => 'contest_id',
+								'value'   => $updatepost->ID,
+							),
+							array(
+								'key' => 'game_id',
+								'value'   => $game['game_id']
+							),
+						),
+					));
+					
+					// print_r($game_details_query);
+					$current_contest_id = $game_details_query->posts[0]->ID;
+					// $bidding_status_settled = $bidding_status['bidding_status'][0];
+					update_field('bidding_status', 3 , $current_contest_id);
+				}
 				}
 
 				if($game_done == "Done"){					
@@ -5637,5 +5660,3 @@ function mlb_update_live_cron() {
 	*/
 	
 }
-
-?>
